@@ -1,3 +1,32 @@
+# 🚀 Frontend SSR con Angular + Docker
+
+Este proyecto utiliza **Angular con Server-Side Rendering (SSR)** y se despliega en un contenedor Docker con Node.js.
+
+---
+
+## 📦 Requisitos
+
+- [Docker](https://docs.docker.com/get-docker/) instalado
+- (Opcional) [Docker Compose](https://docs.docker.com/compose/) para orquestación
+
+---
+
+## 🛠️ Construcción del contenedor
+
+### 1. Construir la imagen
+
+```bash
+docker build -t frontend-ssr:latest .
+
+```
+### 2. Ejecutar el contenedor
+```bash
+docker run --rm -p 4000:4000 frontend-ssr:latest
+```
+
+----
+----
+----
 # Frontend
 
 This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 20.2.2.
