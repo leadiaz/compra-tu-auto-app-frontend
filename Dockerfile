@@ -31,8 +31,6 @@
     ENV PORT=4000
     
     EXPOSE 4000
-    
-    # Ajustá el path si tu build genera otro nombre:
-    # normalmente: dist/frontend/server/server.mjs
+   
     CMD ["node", "dist/frontend/server/server.mjs"]
     
