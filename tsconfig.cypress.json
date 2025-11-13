@@ -1,0 +1,13 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "types": ["cypress"],
+    "target": "ES2022",
+    "module": "NodeNext",
+    "moduleResolution": "nodenext",
+    "isolatedModules": false
+  },
+  "include": [
+    "cypress/**/*.ts"
+  ]
+}

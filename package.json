@@ -4,9 +4,14 @@
   "scripts": {
     "ng": "ng",
     "start": "ng serve",
+    "start:test": "ng serve --port 4201 --configuration development --no-open",
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
+    "e2e": "cypress run",
+    "cy:run": "cypress run",
+    "e2e:ci": "start-server-and-test start:test http://127.0.0.1:4200 cy:run",
+    "e2e:open": "cypress open",
     "serve:ssr:frontend": "node dist/frontend/server/server.mjs"
   },
   "prettier": {
@@ -42,12 +47,14 @@
     "@types/express": "^5.0.1",
     "@types/jasmine": "~5.1.0",
     "@types/node": "^20.17.19",
+    "cypress": "^13.13.0",
     "jasmine-core": "~5.9.0",
     "karma": "~6.4.0",
     "karma-chrome-launcher": "~3.2.0",
     "karma-coverage": "~2.2.0",
     "karma-jasmine": "~5.1.0",
     "karma-jasmine-html-reporter": "~2.1.0",
+    "start-server-and-test": "^2.1.2",
     "typescript": "~5.9.2"
   }
 }
