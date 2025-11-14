@@ -1,0 +1,42 @@
+name: Validate Angular Pull Request
+
+on:
+  pull_request:
+    branches:
+      - develop
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout código
+        uses: actions/checkout@v4
+
+      - name: Configurar Node.js (compatible con Angular 20)
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Cache de dependencias npm
+        uses: actions/cache@v4
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
+
+      - name: Instalar dependencias
+        run: npm ci
+
+      # Opcional: lint (ajusta el script según tu package.json)
+      # - name: Lint
+        # run: npm run lint
+
+      # Build para asegurarnos que compila bien
+      - name: Build Angular
+        run: npm run build -- --configuration=production
+
+      # Opcional: tests unitarios en modo CI
+      # - name: Unit tests
+        # run: npm test -- --watch=false --browsers=ChromeHeadless
