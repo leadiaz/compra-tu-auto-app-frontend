@@ -1,12 +1,13 @@
 import { Component, signal } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
+import { Router, RouterModule } from '@angular/router';
 import { CommonModule } from '@angular/common';
+import { AuthService } from '../../services/auth.service';
 
 @Component({
   selector: 'app-login',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, RouterModule],
   templateUrl: './login.component.html',
   styleUrl: './login.component.css'
 })
@@ -19,7 +20,8 @@ export class LoginComponent {
 
   constructor(
     private formBuilder: FormBuilder,
-    private router: Router
+    private router: Router,
+    private authService: AuthService
   ) {
     this.loginForm = this.formBuilder.group({
       email: ['', [Validators.required, Validators.email]],
@@ -37,20 +39,39 @@ export class LoginComponent {
       this.isLoading.set(true);
       this.errorMessage.set('');
 
-      // Simular llamada al backend
-      setTimeout(() => {
-        const { email, password } = this.loginForm.value;
-        
-        // Aquí iría la lógica real de autenticación
-        console.log('Datos de login:', { email, password });
-        
-  // Simulación de respuesta exitosa
-  this.isLoading.set(false);
-        
-  // Redirigir al dashboard
-  this.router.navigate(['/dashboard']);
-        
-      }, 2000);
+      const { email, password } = this.loginForm.value;
+      
+      // Mapear email a usuario para el backend
+      const loginData = {
+        usuario: email,
+        password: password
+      };
+
+      this.authService.login(loginData).subscribe({
+        next: (response) => {
+          this.isLoading.set(false);
+          // Guardar token y usuario en localStorage
+          if (response.token) {
+            localStorage.setItem('token', response.token);
+          }
+          if (response.usuario) {
+            localStorage.setItem('user', JSON.stringify(response.usuario));
+          }
+          // Redirigir al dashboard
+          this.router.navigate(['/dashboard']);
+        },
+        error: (error) => {
+          this.isLoading.set(false);
+          // Manejar errores de autenticación
+          if (error.status === 401 || error.status === 403) {
+            this.errorMessage.set('Credenciales inválidas. Por favor, verifica tu usuario y contraseña.');
+          } else if (error.status === 0) {
+            this.errorMessage.set('Error de conexión. Por favor, verifica que el servidor esté disponible.');
+          } else {
+            this.errorMessage.set(error.error?.message || 'Error al iniciar sesión. Por favor, intenta nuevamente.');
+          }
+        }
+      });
     } else {
       this.markFormGroupTouched();
     }

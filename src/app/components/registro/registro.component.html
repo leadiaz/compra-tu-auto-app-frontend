@@ -1,0 +1,229 @@
+<div class="registro-container">
+  <div class="registro-card">
+    <div class="registro-header">
+      <h1>Registro de Usuario</h1>
+      <p>Crea una nueva cuenta</p>
+    </div>
+
+    <form [formGroup]="registroForm" (ngSubmit)="onSubmit()" class="registro-form" novalidate>
+      <!-- Campo Nombre -->
+      <div class="form-group">
+        <label for="nombre" class="form-label">Nombre</label>
+        <div class="input-container">
+          <input
+            id="nombre"
+            type="text"
+            formControlName="nombre"
+            class="form-input"
+            [class.invalid]="isFieldInvalid('nombre')"
+            placeholder="Ingresa tu nombre"
+            autocomplete="given-name"
+          />
+          <svg class="input-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                  d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+          </svg>
+        </div>
+        @let nombreError = getFieldError('nombre');
+        @if (nombreError) {
+          <span class="error-message">{{ nombreError }}</span>
+        }
+      </div>
+
+      <!-- Campo Apellido -->
+      <div class="form-group">
+        <label for="apellido" class="form-label">Apellido</label>
+        <div class="input-container">
+          <input
+            id="apellido"
+            type="text"
+            formControlName="apellido"
+            class="form-input"
+            [class.invalid]="isFieldInvalid('apellido')"
+            placeholder="Ingresa tu apellido"
+            autocomplete="family-name"
+          />
+          <svg class="input-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                  d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+          </svg>
+        </div>
+        @let apellidoError = getFieldError('apellido');
+        @if (apellidoError) {
+          <span class="error-message">{{ apellidoError }}</span>
+        }
+      </div>
+
+      <!-- Campo Email -->
+      <div class="form-group">
+        <label for="email" class="form-label">Email</label>
+        <div class="input-container">
+          <input
+            id="email"
+            type="email"
+            formControlName="email"
+            class="form-input"
+            [class.invalid]="isFieldInvalid('email')"
+            placeholder="Ingresa tu email"
+            autocomplete="email"
+          />
+          <svg class="input-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                  d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207"></path>
+          </svg>
+        </div>
+        @let emailError = getFieldError('email');
+        @if (emailError) {
+          <span class="error-message">{{ emailError }}</span>
+        }
+      </div>
+
+      <!-- Campo Contraseña -->
+      <div class="form-group">
+        <label for="password" class="form-label">Contraseña</label>
+        <div class="input-container">
+          <input
+            id="password"
+            [type]="showPassword() ? 'text' : 'password'"
+            formControlName="password"
+            class="form-input"
+            [class.invalid]="isFieldInvalid('password')"
+            placeholder="Ingresa tu contraseña"
+            autocomplete="new-password"
+          />
+          <button
+            type="button"
+            class="password-toggle"
+            (click)="togglePasswordVisibility()"
+            aria-label="Mostrar/ocultar contraseña"
+          >
+            @if (showPassword()) {
+              <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                      d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.878 9.878L3 3m6.878 6.878L21 21"></path>
+              </svg>
+            } @else {
+              <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                      d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                      d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+              </svg>
+            }
+          </button>
+        </div>
+        @let passwordError = getFieldError('password');
+        @if (passwordError) {
+          <span class="error-message">{{ passwordError }}</span>
+        }
+      </div>
+
+      <!-- Campo Confirmar Contraseña -->
+      <div class="form-group">
+        <label for="confirmPassword" class="form-label">Confirmar Contraseña</label>
+        <div class="input-container">
+          <input
+            id="confirmPassword"
+            [type]="showConfirmPassword() ? 'text' : 'password'"
+            formControlName="confirmPassword"
+            class="form-input"
+            [class.invalid]="isFieldInvalid('confirmPassword')"
+            placeholder="Confirma tu contraseña"
+            autocomplete="new-password"
+          />
+          <button
+            type="button"
+            class="password-toggle"
+            (click)="toggleConfirmPasswordVisibility()"
+            aria-label="Mostrar/ocultar confirmación de contraseña"
+          >
+            @if (showConfirmPassword()) {
+              <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                      d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.878 9.878L3 3m6.878 6.878L21 21"></path>
+              </svg>
+            } @else {
+              <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                      d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                      d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+              </svg>
+            }
+          </button>
+        </div>
+        @let confirmPasswordError = getFieldError('confirmPassword');
+        @if (confirmPasswordError) {
+          <span class="error-message">{{ confirmPasswordError }}</span>
+        }
+      </div>
+
+      <!-- Campo Tipo de Usuario (solo para admin) -->
+      @if (isAdmin()) {
+        <div class="form-group">
+          <label for="tipoUsuario" class="form-label">Tipo de Usuario</label>
+          <div class="input-container">
+            <select
+              id="tipoUsuario"
+              formControlName="tipoUsuario"
+              class="form-select"
+              [class.invalid]="isFieldInvalid('tipoUsuario')"
+            >
+              @for (tipo of tiposUsuario; track tipo.value) {
+                <option [value]="tipo.value">{{ tipo.label }}</option>
+              }
+            </select>
+            <svg class="input-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                    d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path>
+            </svg>
+          </div>
+          @let tipoUsuarioError = getFieldError('tipoUsuario');
+          @if (tipoUsuarioError) {
+            <span class="error-message">{{ tipoUsuarioError }}</span>
+          }
+        </div>
+      }
+
+      <!-- Mensaje de error general -->
+      @if (errorMessage()) {
+        <div class="alert-error">
+          {{ errorMessage() }}
+        </div>
+      }
+
+      <!-- Mensaje de éxito -->
+      @if (successMessage()) {
+        <div class="alert-success">
+          {{ successMessage() }}
+        </div>
+      }
+
+      <!-- Botón de submit -->
+      <button
+        type="submit"
+        class="registro-button"
+        [disabled]="isLoading()"
+        [class.loading]="isLoading()"
+      >
+        @if (isLoading()) {
+          <div class="spinner"></div>
+          <span>Registrando...</span>
+        } @else {
+          <span>{{ isAdmin() ? 'Registrar Usuario' : 'Registrarse' }}</span>
+        }
+      </button>
+
+      <!-- Enlaces adicionales -->
+      @if (!isAdmin()) {
+        <div class="registro-footer">
+          <p class="login-link">
+            ¿Ya tienes cuenta? 
+            <a routerLink="/login" class="login-link-text">Inicia sesión aquí</a>
+          </p>
+        </div>
+      }
+    </form>
+  </div>
+</div>
+
