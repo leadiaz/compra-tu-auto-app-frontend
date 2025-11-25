@@ -1,5 +1,6 @@
 import { Injectable } from '@angular/core';
-import { Observable, of, delay } from 'rxjs';
+import { Observable, of, delay, catchError } from 'rxjs';
+import { HttpHeaders } from '@angular/common/http';
 import { ApiService } from './api.service';
 import { MenuItem, MenuResponse } from '../models/menu.model';
 import { TipoUsuario } from '../models/auth.model';
@@ -157,25 +158,40 @@ export class MenuService {
   }
 
   /**
-   * Obtiene el menú del usuario autenticado
-   * Lee el tipo de usuario del localStorage
+   * Obtiene el menú del usuario autenticado desde el backend
    * @returns Observable con el menú del usuario
    */
   getMenu(): Observable<MenuResponse> {
-    const userStr = localStorage.getItem('user');
-    if (!userStr) {
-      // Si no hay usuario, retornar menú por defecto
+    const token = localStorage.getItem('token');
+    
+    // Si no hay token, usar menú por defecto
+    if (!token) {
       return this.getMenuByUserType(TipoUsuario.COMPRADOR);
     }
 
-    try {
-      const user = JSON.parse(userStr);
-      const tipoUsuario = user.tipoUsuario as TipoUsuario;
-      return this.getMenuByUserType(tipoUsuario);
-    } catch {
-      // En caso de error, retornar menú por defecto
-      return this.getMenuByUserType(TipoUsuario.COMPRADOR);
-    }
+    // Configurar headers con el token de autorización
+    const headers = new HttpHeaders({
+      'Authorization': `Bearer ${token}`
+    });
+
+    // Realizar petición GET al backend
+    return this.apiService.get<MenuResponse>('/usuarios/mi-menu', { headers }).pipe(
+      catchError((error) => {
+        console.error('Error al obtener el menú del backend:', error);
+        // En caso de error, usar menú por defecto basado en el tipo de usuario
+        const userStr = localStorage.getItem('user');
+        if (userStr) {
+          try {
+            const user = JSON.parse(userStr);
+            const tipoUsuario = user.tipoUsuario as TipoUsuario;
+            return this.getMenuByUserType(tipoUsuario);
+          } catch {
+            return this.getMenuByUserType(TipoUsuario.COMPRADOR);
+          }
+        }
+        return this.getMenuByUserType(TipoUsuario.COMPRADOR);
+      })
+    );
   }
 }
 
