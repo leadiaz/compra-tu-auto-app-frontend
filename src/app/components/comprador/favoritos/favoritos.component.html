@@ -1,0 +1,57 @@
+<div class="favoritos-container">
+  <h1>Mis Favoritos</h1>
+
+  @if (isLoading()) {
+    <div class="loading-container">
+      <div class="spinner"></div>
+      <p>Cargando favoritos...</p>
+    </div>
+  } @else if (favoritos().length === 0) {
+    <div class="empty-state">
+      <p>No tienes autos guardados en favoritos.</p>
+      <a routerLink="/dashboard/ofertas" class="btn-primary">
+        Buscar Autos
+      </a>
+    </div>
+  } @else {
+    <div class="favoritos-grid">
+      @for (favorito of favoritos(); track favorito.id) {
+        <div class="favorito-card">
+          <div class="auto-image">
+            @if (favorito.auto?.imagenes && favorito.auto.imagenes.length > 0) {
+              <img [src]="favorito.auto.imagenes[0]" [alt]="favorito.auto.marca + ' ' + favorito.auto.modelo" />
+            } @else {
+              <div class="no-image">Sin imagen</div>
+            }
+          </div>
+          <div class="auto-info">
+            <h3>{{ favorito.auto?.marca }} {{ favorito.auto?.modelo }}</h3>
+            <p class="auto-year">{{ favorito.auto?.['año'] }}</p>
+            <div class="auto-details">
+              <span>{{ favorito.auto?.kilometraje | number }} km</span>
+              <span>{{ favorito.auto?.combustible }}</span>
+              <span>{{ favorito.auto?.transmision }}</span>
+            </div>
+            <div class="auto-price">
+              <strong>${{ favorito.auto?.precio | number }}</strong>
+            </div>
+            @if (tieneResena(favorito.autoId)) {
+              <div class="resena-badge">
+                <span>Puntaje: {{ obtenerResena(favorito.autoId)!.puntaje }}/10</span>
+              </div>
+            }
+            <div class="auto-actions">
+              <button type="button" class="btn-primary" (click)="verDetalle(favorito.autoId)">
+                Ver Detalle
+              </button>
+              <button type="button" class="btn-danger" (click)="eliminarFavorito(favorito)">
+                Quitar
+              </button>
+            </div>
+          </div>
+        </div>
+      }
+    </div>
+  }
+</div>
+

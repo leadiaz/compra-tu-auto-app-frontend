@@ -1,0 +1,246 @@
+<div class="buscar-autos-container">
+  <div class="header-section">
+    <h1>Buscar Autos</h1>
+    <button 
+      type="button" 
+      class="btn-toggle-filtros"
+      (click)="toggleFiltros()"
+    >
+      {{ mostrarFiltros() ? 'Ocultar' : 'Mostrar' }} Filtros
+    </button>
+  </div>
+
+  <!-- Filtros avanzados -->
+  @if (mostrarFiltros()) {
+    <div class="filtros-section">
+      <form [formGroup]="filtrosForm" (ngSubmit)="buscar()">
+        <div class="filtros-grid">
+          <!-- Palabra clave -->
+          <div class="form-group">
+            <label>Palabra clave</label>
+            <input 
+              type="text" 
+              formControlName="palabraClave"
+              placeholder="Buscar por modelo, descripción..."
+            />
+          </div>
+
+          <!-- Precio -->
+          <div class="form-group">
+            <label>Precio mínimo</label>
+            <input 
+              type="number" 
+              formControlName="precioMin"
+              placeholder="0"
+              min="0"
+            />
+          </div>
+          <div class="form-group">
+            <label>Precio máximo</label>
+            <input 
+              type="number" 
+              formControlName="precioMax"
+              placeholder="Sin límite"
+              min="0"
+            />
+          </div>
+
+          <!-- Marca y Modelo -->
+          <div class="form-group">
+            <label>Marca</label>
+            <select formControlName="marca">
+              <option value="">Todas las marcas</option>
+              @for (marca of marcas(); track marca) {
+                <option [value]="marca">{{ marca }}</option>
+              }
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Modelo</label>
+            <select formControlName="modelo" [disabled]="!filtrosForm.get('marca')?.value">
+              <option value="">Todos los modelos</option>
+              @for (modelo of modelos(); track modelo) {
+                <option [value]="modelo">{{ modelo }}</option>
+              }
+            </select>
+          </div>
+
+          <!-- Año -->
+          <div class="form-group">
+            <label>Año mínimo</label>
+            <input 
+              type="number" 
+              formControlName="añoMin"
+              placeholder="2000"
+              min="1900"
+              max="2100"
+            />
+          </div>
+          <div class="form-group">
+            <label>Año máximo</label>
+            <input 
+              type="number" 
+              formControlName="añoMax"
+              placeholder="2024"
+              min="1900"
+              max="2100"
+            />
+          </div>
+
+          <!-- Kilometraje -->
+          <div class="form-group">
+            <label>Kilometraje mínimo</label>
+            <input 
+              type="number" 
+              formControlName="kilometrajeMin"
+              placeholder="0"
+              min="0"
+            />
+          </div>
+          <div class="form-group">
+            <label>Kilometraje máximo</label>
+            <input 
+              type="number" 
+              formControlName="kilometrajeMax"
+              placeholder="Sin límite"
+              min="0"
+            />
+          </div>
+
+          <!-- Combustible y Transmisión -->
+          <div class="form-group">
+            <label>Combustible</label>
+            <select formControlName="combustible">
+              <option value="">Todos</option>
+              @for (tipo of tiposCombustible; track tipo) {
+                <option [value]="tipo">{{ tipo }}</option>
+              }
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Transmisión</label>
+            <select formControlName="transmision">
+              <option value="">Todas</option>
+              @for (tipo of tiposTransmision; track tipo) {
+                <option [value]="tipo">{{ tipo }}</option>
+              }
+            </select>
+          </div>
+
+          <!-- Ordenamiento -->
+          <div class="form-group">
+            <label>Ordenar por</label>
+            <select formControlName="sortBy">
+              <option value="precio">Precio</option>
+              <option value="año">Año</option>
+              <option value="kilometraje">Kilometraje</option>
+              <option value="marca">Marca</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Orden</label>
+            <select formControlName="sortOrder">
+              <option value="ASC">Ascendente</option>
+              <option value="DESC">Descendente</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="filtros-actions">
+          <button type="button" class="btn-secondary" (click)="limpiarFiltros()">
+            Limpiar
+          </button>
+          <button type="submit" class="btn-primary" [disabled]="isLoading()">
+            Buscar
+          </button>
+        </div>
+      </form>
+    </div>
+  }
+
+  <!-- Resultados -->
+  <div class="resultados-section">
+    @if (isLoading()) {
+      <div class="loading-container">
+        <div class="spinner"></div>
+        <p>Cargando autos...</p>
+      </div>
+    } @else if (autos().length === 0) {
+      <div class="empty-state">
+        <p>No se encontraron autos con los filtros seleccionados.</p>
+      </div>
+    } @else {
+      <div class="resultados-header">
+        <p>Se encontraron {{ totalElements() }} autos</p>
+      </div>
+
+      <div class="autos-grid">
+        @for (auto of autos(); track auto.id) {
+          <div class="auto-card">
+            <div class="auto-image">
+              @if (auto.imagenes && auto.imagenes.length > 0) {
+                <img [src]="auto.imagenes[0]" [alt]="auto.marca + ' ' + auto.modelo" />
+              } @else {
+                <div class="no-image">Sin imagen</div>
+              }
+              <button 
+                type="button"
+                class="favorito-btn"
+                [class.active]="esFavorito(auto.id)"
+                (click)="toggleFavorito(auto)"
+                [attr.aria-label]="esFavorito(auto.id) ? 'Quitar de favoritos' : 'Agregar a favoritos'"
+              >
+                <svg fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+                </svg>
+              </button>
+            </div>
+            <div class="auto-info">
+              <h3>{{ auto.marca }} {{ auto.modelo }}</h3>
+              <p class="auto-year">{{ auto['año'] }}</p>
+              <div class="auto-details">
+                <span>{{ auto.kilometraje | number }} km</span>
+                <span>{{ auto.combustible }}</span>
+                <span>{{ auto.transmision }}</span>
+              </div>
+              <div class="auto-price">
+                <strong>${{ auto.precio | number }}</strong>
+              </div>
+              <div class="auto-actions">
+                <button type="button" class="btn-primary" (click)="verDetalle(auto.id)">
+                  Ver Detalle
+                </button>
+              </div>
+            </div>
+          </div>
+        }
+      </div>
+
+      <!-- Paginación -->
+      @if (totalPages() > 1) {
+        <div class="pagination">
+          <button 
+            type="button"
+            class="btn-pagination"
+            [disabled]="currentPage() === 0"
+            (click)="cambiarPagina(currentPage() - 1)"
+          >
+            Anterior
+          </button>
+          <span class="page-info">
+            Página {{ currentPage() + 1 }} de {{ totalPages() }}
+          </span>
+          <button 
+            type="button"
+            class="btn-pagination"
+            [disabled]="currentPage() >= totalPages() - 1"
+            (click)="cambiarPagina(currentPage() + 1)"
+          >
+            Siguiente
+          </button>
+        </div>
+      }
+    }
+  </div>
+</div>
+
