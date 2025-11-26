@@ -97,7 +97,7 @@ export class MenuService {
         id: 1,
         label: 'Dashboard',
         icon: 'M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6',
-        route: '/dashboard',
+        route: '/dashboard/home',
         orden: 1
       },
       {
@@ -132,7 +132,7 @@ export class MenuService {
         id: 6,
         label: 'Perfil',
         icon: 'M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z',
-        route: '/dashboard/perfil',
+        route: '/dashboard/perfil-concesionaria',
         orden: 6
       }
     ]
@@ -158,7 +158,8 @@ export class MenuService {
   }
 
   /**
-   * Obtiene el menú del usuario autenticado desde el backend
+   * Obtiene el menú del usuario autenticado
+   * MOCK: Devuelve el menú mockeado basado en el tipo de usuario
    * @returns Observable con el menú del usuario
    */
   getMenu(): Observable<MenuResponse> {
@@ -169,6 +170,30 @@ export class MenuService {
       return this.getMenuByUserType(TipoUsuario.COMPRADOR);
     }
 
+    // MOCK: Obtener el tipo de usuario desde localStorage y devolver el menú correspondiente
+    const userStr = localStorage.getItem('user');
+    if (userStr) {
+      try {
+        const user = JSON.parse(userStr);
+        const tipoUsuario = user.tipoUsuario as TipoUsuario;
+        
+        // Validar que el tipo de usuario sea válido
+        if (tipoUsuario && Object.values(TipoUsuario).includes(tipoUsuario)) {
+          console.log(`[MOCK] Devolviendo menú para usuario tipo: ${tipoUsuario}`);
+          return this.getMenuByUserType(tipoUsuario);
+        }
+      } catch (error) {
+        console.error('Error al parsear usuario desde localStorage:', error);
+      }
+    }
+
+    // Fallback: usar menú de comprador por defecto
+    console.log('[MOCK] Usando menú por defecto (COMPRADOR)');
+    return this.getMenuByUserType(TipoUsuario.COMPRADOR);
+
+    // CÓDIGO ORIGINAL (comentado para referencia):
+    // Si en el futuro se quiere usar el backend real, descomentar esto:
+    /*
     // Configurar headers con el token de autorización
     const headers = new HttpHeaders({
       'Authorization': `Bearer ${token}`
@@ -192,6 +217,7 @@ export class MenuService {
         return this.getMenuByUserType(TipoUsuario.COMPRADOR);
       })
     );
+    */
   }
 }
 

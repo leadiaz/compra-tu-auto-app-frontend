@@ -42,6 +42,7 @@ export interface FiltrosBusqueda {
   combustible?: TipoCombustible;
   transmision?: TipoTransmision;
   concesionariaId?: number;
+  activo?: boolean;
   page?: number;
   size?: number;
   sortBy?: string;

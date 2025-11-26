@@ -52,5 +52,14 @@ export class AuthService {
     const user = this.getCurrentUser();
     return user?.tipoUsuario === 'ADMIN';
   }
+
+  /**
+   * Verifica si el usuario actual es concesionaria
+   * @returns true si es concesionaria, false en caso contrario
+   */
+  isConcesionaria(): boolean {
+    const user = this.getCurrentUser();
+    return user?.tipoUsuario === 'CONCESIONARIA';
+  }
 }
 
