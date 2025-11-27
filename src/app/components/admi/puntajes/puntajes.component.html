@@ -1,0 +1,265 @@
+<div class="puntajes-container">
+  <div class="header-section">
+    <h1>Puntajes y Observaciones</h1>
+    <div class="header-actions">
+      <button 
+        type="button" 
+        class="btn-toggle-filtros"
+        (click)="toggleFiltros()"
+      >
+        {{ mostrarFiltros() ? 'Ocultar' : 'Mostrar' }} Filtros
+      </button>
+      <button 
+        type="button" 
+        class="btn-secondary"
+        (click)="exportarPuntajes('excel')"
+        [disabled]="isLoading() || puntajes().length === 0"
+      >
+        Exportar Excel
+      </button>
+      <button 
+        type="button" 
+        class="btn-secondary"
+        (click)="exportarPuntajes('pdf')"
+        [disabled]="isLoading() || puntajes().length === 0"
+      >
+        Exportar PDF
+      </button>
+    </div>
+  </div>
+
+  <!-- Filtros -->
+  @if (mostrarFiltros()) {
+    <div class="filtros-section">
+      <form [formGroup]="filtrosForm" (ngSubmit)="buscar()">
+        <div class="filtros-grid">
+          <div class="form-group">
+            <label>Puntaje mínimo</label>
+            <input 
+              type="number" 
+              formControlName="puntajeMin"
+              min="0"
+              max="10"
+              placeholder="0"
+            />
+          </div>
+          <div class="form-group">
+            <label>Puntaje máximo</label>
+            <input 
+              type="number" 
+              formControlName="puntajeMax"
+              min="0"
+              max="10"
+              placeholder="10"
+            />
+          </div>
+          <div class="form-group">
+            <label>Fecha desde</label>
+            <input type="date" formControlName="fechaDesde" />
+          </div>
+          <div class="form-group">
+            <label>Fecha hasta</label>
+            <input type="date" formControlName="fechaHasta" />
+          </div>
+          <div class="form-group">
+            <label>Buscar</label>
+            <input 
+              type="text" 
+              formControlName="palabraClave"
+              placeholder="Buscar en comentarios..."
+            />
+          </div>
+          <div class="form-group">
+            <label>Ordenar por</label>
+            <select formControlName="sortBy">
+              <option value="fechaCreacion">Fecha</option>
+              <option value="puntaje">Puntaje</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Orden</label>
+            <select formControlName="sortOrder">
+              <option value="ASC">Ascendente</option>
+              <option value="DESC">Descendente</option>
+            </select>
+          </div>
+        </div>
+        <div class="filtros-actions">
+          <button type="button" class="btn-secondary" (click)="limpiarFiltros()">
+            Limpiar
+          </button>
+          <button type="submit" class="btn-primary" [disabled]="isLoading()">
+            Buscar
+          </button>
+        </div>
+      </form>
+    </div>
+  }
+
+  <!-- Resultados -->
+  <div class="resultados-section">
+    @if (isLoading()) {
+      <div class="loading-container">
+        <div class="spinner"></div>
+        <p>Cargando puntajes...</p>
+      </div>
+    } @else if (puntajes().length === 0) {
+      <div class="empty-state">
+        <p>No se encontraron puntajes con los filtros seleccionados.</p>
+      </div>
+    } @else {
+      <div class="resultados-header">
+        <p>Total: {{ totalElements() }} reseñas</p>
+      </div>
+
+      <div class="puntajes-table-container">
+        <table class="puntajes-table">
+          <thead>
+            <tr>
+              <th>Usuario</th>
+              <th>Auto</th>
+              <th>Puntaje</th>
+              <th>Comentario</th>
+              <th>Fecha</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (resena of puntajes(); track resena.id) {
+              <tr>
+                <td>Usuario ID: {{ resena.usuarioId }}</td>
+                <td>
+                  @if (resena.auto) {
+                    {{ resena.auto.marca }} {{ resena.auto.modelo }}
+                  } @else {
+                    Auto ID: {{ resena.autoId }}
+                  }
+                </td>
+                <td>
+                  <span class="puntaje-badge">{{ resena.puntaje }}/10</span>
+                </td>
+                <td>
+                  @if (resena.comentario) {
+                    <span class="comentario-preview">{{ resena.comentario.length > 50 ? resena.comentario.substring(0, 50) + '...' : resena.comentario }}</span>
+                  } @else {
+                    <span class="text-muted">Sin comentario</span>
+                  }
+                </td>
+                <td>{{ formatearFecha(resena.fechaCreacion) }}</td>
+                <td>
+                  <div class="acciones-cell">
+                    <button 
+                      type="button" 
+                      class="btn-secondary btn-sm"
+                      (click)="verDetalle(resena)"
+                      title="Ver detalle"
+                    >
+                      👁️
+                    </button>
+                    <button 
+                      type="button" 
+                      class="btn-danger btn-sm"
+                      (click)="confirmarEliminar(resena)"
+                      title="Eliminar"
+                    >
+                      🗑️
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Paginación -->
+      @if (totalPages() > 1) {
+        <div class="pagination">
+          <button 
+            type="button"
+            class="btn-pagination"
+            [disabled]="currentPage() === 0"
+            (click)="irAPagina(currentPage() - 1)"
+          >
+            Anterior
+          </button>
+          <span class="page-info">
+            Página {{ currentPage() + 1 }} de {{ totalPages() }}
+          </span>
+          <button 
+            type="button"
+            class="btn-pagination"
+            [disabled]="currentPage() >= totalPages() - 1"
+            (click)="irAPagina(currentPage() + 1)"
+          >
+            Siguiente
+          </button>
+        </div>
+      }
+    }
+  </div>
+</div>
+
+<!-- Modal Detalle -->
+@if (mostrarModalDetalle() && resenaSeleccionada()) {
+  <div class="modal-overlay" (click)="cerrarModales()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <h2>Detalle de Reseña</h2>
+      <div class="detalle-section">
+        <div class="detalle-grid">
+          <div class="detalle-item">
+            <label>ID:</label>
+            <span>{{ resenaSeleccionada()!.id }}</span>
+          </div>
+          <div class="detalle-item">
+            <label>Usuario ID:</label>
+            <span>{{ resenaSeleccionada()!.usuarioId }}</span>
+          </div>
+          <div class="detalle-item">
+            <label>Auto:</label>
+            <span>
+              @if (resenaSeleccionada()!.auto) {
+                {{ resenaSeleccionada()!.auto.marca }} {{ resenaSeleccionada()!.auto.modelo }}
+              } @else {
+                Auto ID: {{ resenaSeleccionada()!.autoId }}
+              }
+            </span>
+          </div>
+          <div class="detalle-item">
+            <label>Puntaje:</label>
+            <span class="puntaje-badge-large">{{ resenaSeleccionada()!.puntaje }}/10</span>
+          </div>
+          <div class="detalle-item full-width">
+            <label>Comentario:</label>
+            <p>{{ resenaSeleccionada()!.comentario || 'Sin comentario' }}</p>
+          </div>
+          <div class="detalle-item">
+            <label>Fecha:</label>
+            <span>{{ formatearFecha(resenaSeleccionada()!.fechaCreacion) }}</span>
+          </div>
+        </div>
+      </div>
+      <div class="modal-actions">
+        <button type="button" class="btn-primary" (click)="cerrarModales()">
+          Cerrar
+        </button>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- Modal Eliminar -->
+@if (mostrarModalEliminar() && resenaSeleccionada()) {
+  <div class="modal-overlay" (click)="cerrarModales()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <h2>Confirmar Eliminación</h2>
+      <p>¿Estás seguro de que deseas eliminar esta reseña?</p>
+      <p class="warning">Esta acción no se puede deshacer.</p>
+      <div class="modal-actions">
+        <button type="button" class="btn-secondary" (click)="cerrarModales()">Cancelar</button>
+        <button type="button" class="btn-danger" (click)="eliminarPuntaje()" [disabled]="isLoading()">Eliminar</button>
+      </div>
+    </div>
+  </div>
+}
+

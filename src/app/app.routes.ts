@@ -2,6 +2,7 @@ import { Routes } from '@angular/router';
 import { authGuard } from './guards/auth.guard';
 import { compradorGuard } from './guards/comprador.guard';
 import { concesionariaGuard } from './guards/concesionaria.guard';
+import { adminGuard } from './guards/admin.guard';
 
 export const routes: Routes = [
   {
@@ -79,6 +80,47 @@ export const routes: Routes = [
         path: 'perfil-concesionaria',
         loadComponent: () => import('./components/concesionaria/perfil/perfil.component').then(m => m.PerfilConcesionariaComponent),
         canActivate: [concesionariaGuard]
+      },
+      // Rutas de administrador
+      {
+        path: 'usuarios',
+        loadComponent: () => import('./components/admi/usuarios/usuarios.component').then(m => m.UsuariosComponent),
+        canActivate: [adminGuard]
+      },
+      {
+        path: 'concesionarias',
+        loadComponent: () => import('./components/admi/concesionarias/concesionarias.component').then(m => m.ConcesionariasComponent),
+        canActivate: [adminGuard]
+      },
+      {
+        path: 'autos-admin',
+        loadComponent: () => import('./components/admi/autos/autos.component').then(m => m.AutosComponent),
+        canActivate: [adminGuard]
+      },
+      {
+        path: 'gestion-autos',
+        loadComponent: () => import('./components/admi/gestion-autos/gestion-autos.component').then(m => m.GestionAutosComponent),
+        canActivate: [adminGuard]
+      },
+      {
+        path: 'puntajes',
+        loadComponent: () => import('./components/admi/puntajes/puntajes.component').then(m => m.PuntajesComponent),
+        canActivate: [adminGuard]
+      },
+      {
+        path: 'compras-admin',
+        loadComponent: () => import('./components/admi/compras/compras.component').then(m => m.ComprasComponent),
+        canActivate: [adminGuard]
+      },
+      {
+        path: 'reportes',
+        loadComponent: () => import('./components/admi/reportes/reportes.component').then(m => m.ReportesComponent),
+        canActivate: [adminGuard]
+      },
+      {
+        path: 'perfil-admin',
+        loadComponent: () => import('./components/admi/perfil/perfil.component').then(m => m.PerfilAdminComponent),
+        canActivate: [adminGuard]
       }
     ]
   },

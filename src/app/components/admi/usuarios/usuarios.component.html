@@ -1,0 +1,514 @@
+<div class="usuarios-container">
+  <div class="header-section">
+    <h1>Gestión de Usuarios</h1>
+    <div class="header-actions">
+      <button 
+        type="button" 
+        class="btn-toggle-filtros"
+        (click)="toggleFiltros()"
+      >
+        {{ mostrarFiltros() ? 'Ocultar' : 'Mostrar' }} Filtros
+      </button>
+      <button 
+        type="button" 
+        class="btn-secondary"
+        (click)="exportarUsuarios('excel')"
+        [disabled]="isLoading() || usuariosPaginados().length === 0"
+      >
+        Exportar Excel
+      </button>
+      <button 
+        type="button" 
+        class="btn-secondary"
+        (click)="exportarUsuarios('pdf')"
+        [disabled]="isLoading() || usuariosPaginados().length === 0"
+      >
+        Exportar PDF
+      </button>
+      <button 
+        type="button" 
+        class="btn-primary"
+        (click)="abrirModalCrear()"
+      >
+        + Crear Usuario
+      </button>
+    </div>
+  </div>
+
+  <!-- Filtros -->
+  @if (mostrarFiltros()) {
+    <div class="filtros-section">
+      <form [formGroup]="filtrosForm" (ngSubmit)="buscar()">
+        <div class="filtros-grid">
+          <div class="form-group">
+            <label>Tipo de Usuario</label>
+            <select formControlName="tipoUsuario">
+              <option value="">Todos</option>
+              @for (tipo of tiposUsuario; track tipo.value) {
+                <option [value]="tipo.value">{{ tipo.label }}</option>
+              }
+            </select>
+          </div>
+          <div class="form-group">
+            <label>
+              <input type="checkbox" formControlName="sinConcesionaria" />
+              Solo CONCESIONARIA sin concesionaria asignada
+            </label>
+            <small>Filtra usuarios CONCESIONARIA que no tienen concesionaria asignada</small>
+          </div>
+          <div class="form-group">
+            <label>Estado</label>
+            <select formControlName="activo">
+              <option [value]="null">Todos</option>
+              <option [value]="true">Activos</option>
+              <option [value]="false">Inactivos</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Concesionaria</label>
+            <select formControlName="concesionariaId">
+              <option [value]="null">Todas</option>
+              @for (concesionaria of concesionarias(); track concesionaria.id) {
+                <option [value]="concesionaria.id">{{ concesionaria.nombre }}</option>
+              }
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Fecha desde</label>
+            <input type="date" formControlName="fechaAltaDesde" />
+          </div>
+          <div class="form-group">
+            <label>Fecha hasta</label>
+            <input type="date" formControlName="fechaAltaHasta" />
+          </div>
+          <div class="form-group">
+            <label>Buscar</label>
+            <input 
+              type="text" 
+              formControlName="palabraClave"
+              placeholder="Nombre, apellido, email..."
+            />
+          </div>
+          <div class="form-group">
+            <label>Ordenar por</label>
+            <select formControlName="sortBy">
+              <option value="fechaAlta">Fecha de alta</option>
+              <option value="nombre">Nombre</option>
+              <option value="email">Email</option>
+              <option value="tipoUsuario">Tipo de usuario</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Orden</label>
+            <select formControlName="sortOrder">
+              <option value="ASC">Ascendente</option>
+              <option value="DESC">Descendente</option>
+            </select>
+          </div>
+        </div>
+        <div class="filtros-actions">
+          <button type="button" class="btn-secondary" (click)="limpiarFiltros()">
+            Limpiar
+          </button>
+          <button type="submit" class="btn-primary" [disabled]="isLoading()">
+            Buscar
+          </button>
+        </div>
+      </form>
+    </div>
+  }
+
+  <!-- Resultados -->
+  <div class="resultados-section">
+    @if (isLoading()) {
+      <div class="loading-container">
+        <div class="spinner"></div>
+        <p>Cargando usuarios...</p>
+      </div>
+    } @else if (usuarios().length === 0) {
+      <div class="empty-state">
+        <p>No hay usuarios registrados en el sistema.</p>
+      </div>
+    } @else if (usuariosFiltrados().length === 0) {
+      <div class="empty-state">
+        <p>No se encontraron usuarios con los filtros seleccionados.</p>
+      </div>
+    } @else {
+      <div class="resultados-header">
+        <p>Total: {{ totalElements() }} usuarios 
+          @if (usuarios().length !== usuariosFiltrados().length) {
+            ({{ usuarios().length }} totales)
+          }
+        </p>
+      </div>
+
+      <div class="usuarios-table-container">
+        <table class="usuarios-table">
+          <thead>
+            <tr>
+              <th>Nombre</th>
+              <th>Email</th>
+              <th>Tipo</th>
+              <th>Concesionaria</th>
+              <th>Estado</th>
+              <th>Fecha Alta</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (usuario of usuariosPaginados(); track usuario.id) {
+              <tr [class.inactivo]="!usuario.activo">
+                <td>
+                  <strong>{{ usuario.nombre }} {{ usuario.apellido }}</strong>
+                </td>
+                <td>{{ usuario.email }}</td>
+                <td>
+                  <span class="badge-tipo">{{ usuario.tipoUsuario }}</span>
+                </td>
+                <td>{{ usuario.concesionariaNombre || '-' }}</td>
+                <td>
+                  @if (usuario.activo) {
+                    <span class="badge-activo">Activo</span>
+                  } @else {
+                    <span class="badge-inactivo">Inactivo</span>
+                  }
+                </td>
+                <td>{{ formatearFecha(usuario.fechaAlta) }}</td>
+                <td>
+                  <div class="acciones-cell">
+                    <button 
+                      type="button" 
+                      class="btn-secondary btn-sm"
+                      (click)="verDetalle(usuario)"
+                      title="Ver detalle"
+                    >
+                      👁️
+                    </button>
+                    <button 
+                      type="button" 
+                      class="btn-primary btn-sm"
+                      (click)="abrirModalEditar(usuario)"
+                      title="Editar"
+                    >
+                      ✏️
+                    </button>
+                    @if (usuario.activo) {
+                      <button 
+                        type="button" 
+                        class="btn-warning btn-sm"
+                        (click)="confirmarDesactivar(usuario)"
+                        title="Desactivar"
+                      >
+                        ⏸️
+                      </button>
+                    } @else {
+                      <button 
+                        type="button" 
+                        class="btn-success btn-sm"
+                        (click)="confirmarActivar(usuario)"
+                        title="Activar"
+                      >
+                        ▶️
+                      </button>
+                    }
+                    <button 
+                      type="button" 
+                      class="btn-danger btn-sm"
+                      (click)="confirmarEliminar(usuario)"
+                      title="Eliminar"
+                    >
+                      🗑️
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Paginación -->
+      @if (totalPages() > 1) {
+        <div class="pagination">
+          <button 
+            type="button"
+            class="btn-pagination"
+            [disabled]="currentPage() === 0"
+            (click)="irAPagina(currentPage() - 1)"
+          >
+            Anterior
+          </button>
+          <span class="page-info">
+            Página {{ currentPage() + 1 }} de {{ totalPages() }}
+          </span>
+          <button 
+            type="button"
+            class="btn-pagination"
+            [disabled]="currentPage() >= totalPages() - 1"
+            (click)="irAPagina(currentPage() + 1)"
+          >
+            Siguiente
+          </button>
+        </div>
+      }
+    }
+  </div>
+</div>
+
+<!-- Modal Crear Usuario -->
+@if (mostrarModalCrear()) {
+  <div class="modal-overlay" (click)="cerrarModales()">
+    <div class="modal-content modal-large" (click)="$event.stopPropagation()">
+      <h2>Crear Nuevo Usuario</h2>
+      <form [formGroup]="usuarioForm" (ngSubmit)="crearUsuario()">
+        <div class="form-grid">
+          <div class="form-group" [class.invalid]="isFieldInvalid('nombre')">
+            <label>Nombre *</label>
+            <input type="text" formControlName="nombre" />
+            @if (getFieldError('nombre')) {
+              <span class="error-message">{{ getFieldError('nombre') }}</span>
+            }
+          </div>
+          <div class="form-group" [class.invalid]="isFieldInvalid('apellido')">
+            <label>Apellido *</label>
+            <input type="text" formControlName="apellido" />
+            @if (getFieldError('apellido')) {
+              <span class="error-message">{{ getFieldError('apellido') }}</span>
+            }
+          </div>
+          <div class="form-group" [class.invalid]="isFieldInvalid('email')">
+            <label>Email *</label>
+            <input type="email" formControlName="email" />
+            @if (getFieldError('email')) {
+              <span class="error-message">{{ getFieldError('email') }}</span>
+            }
+          </div>
+          <div class="form-group" [class.invalid]="isFieldInvalid('password')">
+            <label>Contraseña *</label>
+            <input type="password" formControlName="password" />
+            @if (getFieldError('password')) {
+              <span class="error-message">{{ getFieldError('password') }}</span>
+            }
+          </div>
+          <div class="form-group">
+            <label>Teléfono</label>
+            <input type="tel" formControlName="telefono" />
+          </div>
+          <div class="form-group" [class.invalid]="isFieldInvalid('tipoUsuario')">
+            <label>Tipo de Usuario *</label>
+            <select formControlName="tipoUsuario">
+              <option value="">Seleccione un tipo</option>
+              @for (tipo of tiposUsuario; track tipo.value) {
+                <option [value]="tipo.value">{{ tipo.label }}</option>
+              }
+            </select>
+            @if (getFieldError('tipoUsuario')) {
+              <span class="error-message">{{ getFieldError('tipoUsuario') }}</span>
+            }
+          </div>
+          @if (usuarioForm.get('tipoUsuario')?.value === 'CONCESIONARIA') {
+            <div class="form-group">
+              <label>Concesionaria</label>
+              <select formControlName="concesionariaId">
+                <option [value]="null">Seleccione una concesionaria</option>
+                @for (concesionaria of concesionarias(); track concesionaria.id) {
+                  <option [value]="concesionaria.id">{{ concesionaria.nombre }}</option>
+                }
+              </select>
+            </div>
+          }
+        </div>
+        <div class="modal-actions">
+          <button type="button" class="btn-secondary" (click)="cerrarModales()">
+            Cancelar
+          </button>
+          <button type="submit" class="btn-primary" [disabled]="!usuarioForm.valid || isLoading()">
+            Crear Usuario
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+}
+
+<!-- Modal Editar Usuario -->
+@if (mostrarModalEditar() && usuarioSeleccionado()) {
+  <div class="modal-overlay" (click)="cerrarModales()">
+    <div class="modal-content modal-large" (click)="$event.stopPropagation()">
+      <h2>Editar Usuario</h2>
+      <form [formGroup]="usuarioForm" (ngSubmit)="editarUsuario()">
+        <div class="form-grid">
+          <div class="form-group" [class.invalid]="isFieldInvalid('nombre')">
+            <label>Nombre *</label>
+            <input type="text" formControlName="nombre" />
+            @if (getFieldError('nombre')) {
+              <span class="error-message">{{ getFieldError('nombre') }}</span>
+            }
+          </div>
+          <div class="form-group" [class.invalid]="isFieldInvalid('apellido')">
+            <label>Apellido *</label>
+            <input type="text" formControlName="apellido" />
+            @if (getFieldError('apellido')) {
+              <span class="error-message">{{ getFieldError('apellido') }}</span>
+            }
+          </div>
+          <div class="form-group" [class.invalid]="isFieldInvalid('email')">
+            <label>Email *</label>
+            <input type="email" formControlName="email" />
+            @if (getFieldError('email')) {
+              <span class="error-message">{{ getFieldError('email') }}</span>
+            }
+          </div>
+          <div class="form-group">
+            <label>Contraseña (dejar vacío para no cambiar)</label>
+            <input type="password" formControlName="password" />
+          </div>
+          <div class="form-group">
+            <label>Teléfono</label>
+            <input type="tel" formControlName="telefono" />
+          </div>
+          <div class="form-group" [class.invalid]="isFieldInvalid('tipoUsuario')">
+            <label>Tipo de Usuario *</label>
+            <select formControlName="tipoUsuario">
+              <option value="">Seleccione un tipo</option>
+              @for (tipo of tiposUsuario; track tipo.value) {
+                <option [value]="tipo.value">{{ tipo.label }}</option>
+              }
+            </select>
+            @if (getFieldError('tipoUsuario')) {
+              <span class="error-message">{{ getFieldError('tipoUsuario') }}</span>
+            }
+          </div>
+          @if (usuarioForm.get('tipoUsuario')?.value === 'CONCESIONARIA') {
+            <div class="form-group">
+              <label>Concesionaria</label>
+              <select formControlName="concesionariaId">
+                <option [value]="null">Seleccione una concesionaria</option>
+                @for (concesionaria of concesionarias(); track concesionaria.id) {
+                  <option [value]="concesionaria.id">{{ concesionaria.nombre }}</option>
+                }
+              </select>
+            </div>
+          }
+        </div>
+        <div class="modal-actions">
+          <button type="button" class="btn-secondary" (click)="cerrarModales()">
+            Cancelar
+          </button>
+          <button type="submit" class="btn-primary" [disabled]="!usuarioForm.valid || isLoading()">
+            Guardar Cambios
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+}
+
+<!-- Modal Detalle Usuario -->
+@if (mostrarModalDetalle() && usuarioSeleccionado()) {
+  <div class="modal-overlay" (click)="cerrarModales()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <h2>Detalle de Usuario</h2>
+      <div class="detalle-section">
+        <div class="detalle-grid">
+          <div class="detalle-item">
+            <label>ID:</label>
+            <span>{{ usuarioSeleccionado()!.id }}</span>
+          </div>
+          <div class="detalle-item">
+            <label>Nombre:</label>
+            <span>{{ usuarioSeleccionado()!.nombre }} {{ usuarioSeleccionado()!.apellido }}</span>
+          </div>
+          <div class="detalle-item">
+            <label>Email:</label>
+            <span>{{ usuarioSeleccionado()!.email }}</span>
+          </div>
+          <div class="detalle-item">
+            <label>Teléfono:</label>
+            <span>{{ usuarioSeleccionado()!.telefono || 'No especificado' }}</span>
+          </div>
+          <div class="detalle-item">
+            <label>Tipo de Usuario:</label>
+            <span>{{ usuarioSeleccionado()!.tipoUsuario }}</span>
+          </div>
+          <div class="detalle-item">
+            <label>Concesionaria:</label>
+            <span>{{ usuarioSeleccionado()!.concesionariaNombre || 'No asignada' }}</span>
+          </div>
+          <div class="detalle-item">
+            <label>Estado:</label>
+            <span [class.badge-activo]="usuarioSeleccionado()!.activo" [class.badge-inactivo]="!usuarioSeleccionado()!.activo">
+              {{ usuarioSeleccionado()!.activo ? 'Activo' : 'Inactivo' }}
+            </span>
+          </div>
+          <div class="detalle-item">
+            <label>Fecha de Alta:</label>
+            <span>{{ formatearFecha(usuarioSeleccionado()!.fechaAlta) }}</span>
+          </div>
+        </div>
+      </div>
+      <div class="modal-actions">
+        <button type="button" class="btn-primary" (click)="cerrarModales()">
+          Cerrar
+        </button>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- Modal Eliminar -->
+@if (mostrarModalEliminar() && usuarioSeleccionado()) {
+  <div class="modal-overlay" (click)="cerrarModales()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <h2>Confirmar Eliminación</h2>
+      <p>¿Estás seguro de que deseas eliminar al usuario <strong>{{ usuarioSeleccionado()!.nombre }} {{ usuarioSeleccionado()!.apellido }}</strong>?</p>
+      <p class="warning">Esta acción no se puede deshacer.</p>
+      <div class="modal-actions">
+        <button type="button" class="btn-secondary" (click)="cerrarModales()">
+          Cancelar
+        </button>
+        <button type="button" class="btn-danger" (click)="eliminarUsuario()" [disabled]="isLoading()">
+          Eliminar
+        </button>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- Modal Activar -->
+@if (mostrarModalActivar() && usuarioSeleccionado()) {
+  <div class="modal-overlay" (click)="cerrarModales()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <h2>Activar Usuario</h2>
+      <p>¿Deseas activar al usuario <strong>{{ usuarioSeleccionado()!.nombre }} {{ usuarioSeleccionado()!.apellido }}</strong>?</p>
+      <div class="modal-actions">
+        <button type="button" class="btn-secondary" (click)="cerrarModales()">
+          Cancelar
+        </button>
+        <button type="button" class="btn-success" (click)="activarUsuario()" [disabled]="isLoading()">
+          Activar
+        </button>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- Modal Desactivar -->
+@if (mostrarModalDesactivar() && usuarioSeleccionado()) {
+  <div class="modal-overlay" (click)="cerrarModales()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <h2>Desactivar Usuario</h2>
+      <p>¿Deseas desactivar al usuario <strong>{{ usuarioSeleccionado()!.nombre }} {{ usuarioSeleccionado()!.apellido }}</strong>?</p>
+      <p class="warning">El usuario no podrá acceder al sistema hasta que sea reactivado.</p>
+      <div class="modal-actions">
+        <button type="button" class="btn-secondary" (click)="cerrarModales()">
+          Cancelar
+        </button>
+        <button type="button" class="btn-warning" (click)="desactivarUsuario()" [disabled]="isLoading()">
+          Desactivar
+        </button>
+      </div>
+    </div>
+  </div>
+}
+

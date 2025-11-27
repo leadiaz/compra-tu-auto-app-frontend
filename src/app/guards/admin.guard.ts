@@ -2,8 +2,9 @@ import { inject, PLATFORM_ID } from '@angular/core';
 import { Router, CanActivateFn } from '@angular/router';
 import { isPlatformBrowser } from '@angular/common';
 import { AuthService } from '../services/auth.service';
+import { TipoUsuario } from '../models/auth.model';
 
-export const authGuard: CanActivateFn = (route, state) => {
+export const adminGuard: CanActivateFn = (route, state) => {
   const authService = inject(AuthService);
   const router = inject(Router);
   const platformId = inject(PLATFORM_ID);
@@ -14,15 +15,21 @@ export const authGuard: CanActivateFn = (route, state) => {
     return false;
   }
   
-  const token = localStorage.getItem('token');
   const user = authService.getCurrentUser();
+  const token = localStorage.getItem('token');
   
-  if (token && user) {
+  if (!token || !user) {
+    router.navigate(['/login'], { queryParams: { returnUrl: state.url } });
+    return false;
+  }
+  
+  // Verificar que el usuario sea ADMIN
+  if (user.tipoUsuario === TipoUsuario.ADMIN) {
     return true;
   }
   
-  // Redirigir al login si no está autenticado
-  router.navigate(['/login'], { queryParams: { returnUrl: state.url } });
+  // Si no es admin, redirigir al dashboard según su rol
+  router.navigate(['/dashboard']);
   return false;
 };
 
