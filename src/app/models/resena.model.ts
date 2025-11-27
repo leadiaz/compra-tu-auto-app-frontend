@@ -1,12 +1,16 @@
 export interface Resena {
   id: number;
   autoId: number;
+  autoMarca: string;
+  autoModelo: string;
+  autoAnioModelo: number;
   usuarioId: number;
+  usuarioNombre: string;
+  usuarioApellido: string;
   puntaje: number; // 0 a 10
   comentario?: string;
   fechaCreacion: string;
-  fechaModificacion?: string;
-  auto?: any; // Referencia al auto completo
+  fechaActualizacion: string;
 }
 
 export interface ResenaRequest {
@@ -16,7 +20,16 @@ export interface ResenaRequest {
 }
 
 export interface ResenaUpdate {
-  puntaje?: number;
+  puntaje: number;
   comentario?: string;
+}
+
+export interface TopAutoRankeado {
+  autoId: number;
+  marca: string;
+  modelo: string;
+  anioModelo: number;
+  promedioPuntaje: number;
+  cantidadResenas: number;
 }
 

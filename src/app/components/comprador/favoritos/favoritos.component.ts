@@ -47,15 +47,25 @@ export class FavoritosComponent implements OnInit {
     const reseñasMap = new Map<number, Resena>();
     
     favoritos.forEach(favorito => {
-      this.resenaService.obtenerResena(favorito.autoId).subscribe({
-        next: (resena) => {
-          if (resena) {
-            reseñasMap.set(favorito.autoId, resena);
-            this.reseñas.set(new Map(reseñasMap));
+      this.resenaService.listarResenasPorAuto(favorito.autoId).subscribe({
+        next: (resenas) => {
+          // Buscar la reseña del usuario actual
+          const userStr = localStorage.getItem('user');
+          if (userStr) {
+            try {
+              const user = JSON.parse(userStr);
+              const miResena = resenas.find(r => r.usuarioId === user.id);
+              if (miResena) {
+                reseñasMap.set(favorito.autoId, miResena);
+                this.reseñas.set(new Map(reseñasMap));
+              }
+            } catch {
+              // Error al parsear usuario
+            }
           }
         },
         error: () => {
-          // No hay reseña para este auto, continuar
+          // No hay reseñas para este auto, continuar
         }
       });
     });
@@ -63,7 +73,7 @@ export class FavoritosComponent implements OnInit {
 
   eliminarFavorito(favorito: Favorito): void {
     if (confirm('¿Estás seguro de quitar este auto de favoritos?')) {
-      this.favoritoService.eliminarFavorito(favorito.autoId).subscribe({
+      this.favoritoService.eliminarFavorito(favorito.ofertaId).subscribe({
         next: () => {
           this.favoritos.update(favs => favs.filter(f => f.id !== favorito.id));
         },

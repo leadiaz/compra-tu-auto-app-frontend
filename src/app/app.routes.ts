@@ -36,6 +36,11 @@ export const routes: Routes = [
         canActivate: [compradorGuard]
       },
       {
+        path: 'mis-resenas',
+        loadComponent: () => import('./components/comprador/resenas/resenas.component').then(m => m.ResenasComponent),
+        canActivate: [compradorGuard]
+      },
+      {
         path: 'mis-compras',
         loadComponent: () => import('./components/comprador/mis-compras/mis-compras.component').then(m => m.MisComprasComponent),
         canActivate: [compradorGuard]

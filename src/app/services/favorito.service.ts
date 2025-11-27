@@ -18,37 +18,51 @@ export class FavoritoService {
   }
 
   /**
-   * Agrega un auto a favoritos
-   */
-  agregarFavorito(request: FavoritoRequest): Observable<Favorito> {
-    return this.apiService.post<Favorito>('/compradores/favoritos', request, {
-      headers: this.getHeaders()
-    });
-  }
-
-  /**
-   * Elimina un auto de favoritos
-   */
-  eliminarFavorito(autoId: number): Observable<void> {
-    return this.apiService.delete<void>(`/compradores/favoritos/${autoId}`, {
-      headers: this.getHeaders()
-    });
-  }
-
-  /**
-   * Lista todos los favoritos del usuario
+   * Lista todos los favoritos del usuario autenticado (COMPRADOR)
+   * GET /favoritos
    */
   listarFavoritos(): Observable<Favorito[]> {
-    return this.apiService.get<Favorito[]>('/compradores/favoritos', {
+    return this.apiService.get<Favorito[]>('/favoritos', {
       headers: this.getHeaders()
     });
   }
 
   /**
-   * Verifica si un auto está en favoritos
+   * Agrega una oferta como favorita (COMPRADOR)
+   * POST /favoritos
    */
-  esFavorito(autoId: number): Observable<boolean> {
-    return this.apiService.get<boolean>(`/compradores/favoritos/${autoId}/existe`, {
+  agregarFavorito(request: FavoritoRequest): Observable<Favorito> {
+    return this.apiService.post<Favorito>('/favoritos', request, {
+      headers: this.getHeaders()
+    });
+  }
+
+  /**
+   * Elimina una oferta de favoritos (COMPRADOR)
+   * DELETE /favoritos/{ofertaId}
+   */
+  eliminarFavorito(ofertaId: number): Observable<void> {
+    return this.apiService.delete<void>(`/favoritos/${ofertaId}`, {
+      headers: this.getHeaders()
+    });
+  }
+
+  /**
+   * Lista todos los favoritos del sistema (ADMIN)
+   * GET /favoritos/admin
+   */
+  listarTodosFavoritos(): Observable<Favorito[]> {
+    return this.apiService.get<Favorito[]>('/favoritos/admin', {
+      headers: this.getHeaders()
+    });
+  }
+
+  /**
+   * Lista favoritos por oferta (ADMIN)
+   * GET /favoritos/admin/oferta/{ofertaId}
+   */
+  listarFavoritosPorOferta(ofertaId: number): Observable<Favorito[]> {
+    return this.apiService.get<Favorito[]>(`/favoritos/admin/oferta/${ofertaId}`, {
       headers: this.getHeaders()
     });
   }

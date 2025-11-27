@@ -1,0 +1,169 @@
+<div class="resenas-container">
+  <div class="header">
+    <h1>Mis Reseñas</h1>
+    <button type="button" class="btn-primary" (click)="abrirModalCrear()">
+      Crear Reseña
+    </button>
+  </div>
+
+  @if (isLoading()) {
+    <div class="loading-container">
+      <div class="spinner"></div>
+      <p>Cargando reseñas...</p>
+    </div>
+  } @else if (resenas().length === 0) {
+    <div class="empty-state">
+      <p>No has creado ninguna reseña aún.</p>
+      <button type="button" class="btn-primary" (click)="abrirModalCrear()">
+        Crear Primera Reseña
+      </button>
+    </div>
+  } @else {
+    <div class="resenas-list">
+      @for (resena of resenas(); track resena.id) {
+        <div class="resena-card">
+          <div class="resena-header">
+            <div class="auto-info">
+              <h3>{{ resena.autoMarca }} {{ resena.autoModelo }} ({{ resena.autoAnioModelo }})</h3>
+              <div class="puntaje">
+                <span class="puntaje-label">Puntaje:</span>
+                <span class="puntaje-valor">{{ resena.puntaje }}/10</span>
+                <div class="stars">
+                  @for (star of [1,2,3,4,5,6,7,8,9,10]; track star) {
+                    <span class="star" [class.filled]="star <= resena.puntaje">★</span>
+                  }
+                </div>
+              </div>
+            </div>
+            <div class="resena-actions">
+              <button type="button" class="btn-secondary" (click)="abrirModalEditar(resena)">
+                Editar
+              </button>
+              <button type="button" class="btn-danger" (click)="eliminarResena(resena)">
+                Eliminar
+              </button>
+            </div>
+          </div>
+          
+          @if (resena.comentario) {
+            <div class="comentario">
+              <p>{{ resena.comentario }}</p>
+            </div>
+          }
+          
+          <div class="resena-footer">
+            <div class="fechas">
+              <span class="fecha-label">Creada:</span>
+              <span>{{ formatearFecha(resena.fechaCreacion) }}</span>
+              @if (resena.fechaActualizacion && resena.fechaActualizacion !== resena.fechaCreacion) {
+                <span class="fecha-label">Actualizada:</span>
+                <span>{{ formatearFecha(resena.fechaActualizacion) }}</span>
+              }
+            </div>
+            <button type="button" class="btn-link" (click)="verDetalleAuto(resena.autoId)">
+              Ver Detalle del Auto
+            </button>
+          </div>
+        </div>
+      }
+    </div>
+  }
+
+  <!-- Modal Crear Reseña -->
+  @if (mostrarModalCrear()) {
+    <div class="modal-overlay" (click)="cerrarModales()">
+      <div class="modal-content" (click)="$event.stopPropagation()">
+        <h2>Crear Nueva Reseña</h2>
+        <form [formGroup]="resenaForm" (ngSubmit)="crearResena()">
+          <div class="form-group" [class.invalid]="isFieldInvalid('autoId')">
+            <label>ID del Auto *</label>
+            <input type="number" formControlName="autoId" min="1" />
+            @if (getFieldError('autoId')) {
+              <span class="error-message">{{ getFieldError('autoId') }}</span>
+            }
+          </div>
+          
+          <div class="form-group" [class.invalid]="isFieldInvalid('puntaje')">
+            <label>Puntaje (0-10) *</label>
+            <input type="number" formControlName="puntaje" min="0" max="10" />
+            @if (getFieldError('puntaje')) {
+              <span class="error-message">{{ getFieldError('puntaje') }}</span>
+            }
+            <small>El puntaje debe estar entre 0 y 10</small>
+          </div>
+          
+          <div class="form-group" [class.invalid]="isFieldInvalid('comentario')">
+            <label>Comentario</label>
+            <textarea 
+              formControlName="comentario" 
+              rows="4" 
+              maxlength="1000"
+              placeholder="Escribe tu comentario sobre el auto (opcional, máximo 1000 caracteres)"
+            ></textarea>
+            @if (getFieldError('comentario')) {
+              <span class="error-message">{{ getFieldError('comentario') }}</span>
+            }
+            <small>{{ resenaForm.get('comentario')?.value?.length || 0 }}/1000 caracteres</small>
+          </div>
+          
+          <div class="modal-actions">
+            <button type="button" class="btn-secondary" (click)="cerrarModales()" [disabled]="isLoading()">
+              Cancelar
+            </button>
+            <button type="submit" class="btn-primary" [disabled]="!resenaForm.valid || isLoading()">
+              Crear Reseña
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  }
+
+  <!-- Modal Editar Reseña -->
+  @if (mostrarModalEditar()) {
+    <div class="modal-overlay" (click)="cerrarModales()">
+      <div class="modal-content" (click)="$event.stopPropagation()">
+        <h2>Editar Reseña</h2>
+        <form [formGroup]="resenaForm" (ngSubmit)="actualizarResena()">
+          <div class="form-group">
+            <label>Auto</label>
+            <input type="text" [value]="resenaSeleccionada()?.autoMarca + ' ' + resenaSeleccionada()?.autoModelo + ' (' + resenaSeleccionada()?.autoAnioModelo + ')'" disabled />
+          </div>
+          
+          <div class="form-group" [class.invalid]="isFieldInvalid('puntaje')">
+            <label>Puntaje (0-10) *</label>
+            <input type="number" formControlName="puntaje" min="0" max="10" />
+            @if (getFieldError('puntaje')) {
+              <span class="error-message">{{ getFieldError('puntaje') }}</span>
+            }
+            <small>El puntaje debe estar entre 0 y 10</small>
+          </div>
+          
+          <div class="form-group" [class.invalid]="isFieldInvalid('comentario')">
+            <label>Comentario</label>
+            <textarea 
+              formControlName="comentario" 
+              rows="4" 
+              maxlength="1000"
+              placeholder="Escribe tu comentario sobre el auto (opcional, máximo 1000 caracteres)"
+            ></textarea>
+            @if (getFieldError('comentario')) {
+              <span class="error-message">{{ getFieldError('comentario') }}</span>
+            }
+            <small>{{ resenaForm.get('comentario')?.value?.length || 0 }}/1000 caracteres</small>
+          </div>
+          
+          <div class="modal-actions">
+            <button type="button" class="btn-secondary" (click)="cerrarModales()" [disabled]="isLoading()">
+              Cancelar
+            </button>
+            <button type="submit" class="btn-primary" [disabled]="!resenaForm.valid || isLoading()">
+              Actualizar Reseña
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  }
+</div>
+

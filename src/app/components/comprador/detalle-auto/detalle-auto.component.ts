@@ -7,7 +7,7 @@ import { FavoritoService } from '../../../services/favorito.service';
 import { ResenaService } from '../../../services/resena.service';
 import { CompraService } from '../../../services/compra.service';
 import { Auto } from '../../../models/auto.model';
-import { Resena, ResenaRequest } from '../../../models/resena.model';
+import { Resena, ResenaRequest, ResenaUpdate } from '../../../models/resena.model';
 import { CompraRequest } from '../../../models/compra.model';
 
 @Component({
@@ -68,19 +68,37 @@ export class DetalleAutoComponent implements OnInit {
   }
 
   verificarFavorito(autoId: number): void {
-    this.favoritoService.esFavorito(autoId).subscribe({
-      next: (esFav) => this.esFavorito.set(esFav),
+    // Listar favoritos y verificar si el auto está en la lista
+    this.favoritoService.listarFavoritos().subscribe({
+      next: (favoritos) => {
+        const esFav = favoritos.some(f => f.autoId === autoId);
+        this.esFavorito.set(esFav);
+      },
       error: () => this.esFavorito.set(false)
     });
   }
 
   cargarResena(autoId: number): void {
-    this.resenaService.obtenerResena(autoId).subscribe({
-      next: (resena) => {
-        if (resena) {
-          this.resena.set(resena);
-          this.resenaForm.puntaje = resena.puntaje;
-          this.resenaForm.comentario = resena.comentario || '';
+    // Listar reseñas del auto y buscar la del usuario actual
+    this.resenaService.listarResenasPorAuto(autoId).subscribe({
+      next: (resenas: Resena[]) => {
+        const userStr = localStorage.getItem('user');
+        if (userStr) {
+          try {
+            const user = JSON.parse(userStr);
+            const miResena = resenas.find(r => r.usuarioId === user.id);
+            if (miResena) {
+              this.resena.set(miResena);
+              this.resenaForm.puntaje = miResena.puntaje;
+              this.resenaForm.comentario = miResena.comentario || '';
+            } else {
+              this.resena.set(null);
+            }
+          } catch {
+            this.resena.set(null);
+          }
+        } else {
+          this.resena.set(null);
         }
       },
       error: () => this.resena.set(null)
@@ -92,14 +110,34 @@ export class DetalleAutoComponent implements OnInit {
     if (!auto) return;
 
     if (this.esFavorito()) {
-      this.favoritoService.eliminarFavorito(auto.id).subscribe({
-        next: () => this.esFavorito.set(false),
-        error: (error) => console.error('Error al eliminar favorito:', error)
+      // Buscar el favorito para obtener el ofertaId
+      this.favoritoService.listarFavoritos().subscribe({
+        next: (favoritos) => {
+          const favorito = favoritos.find(f => f.autoId === auto.id);
+          if (favorito) {
+            this.favoritoService.eliminarFavorito(favorito.ofertaId).subscribe({
+              next: () => this.esFavorito.set(false),
+              error: (error) => {
+                console.error('Error al eliminar favorito:', error);
+                alert('Error al eliminar favorito. Por favor, intenta nuevamente.');
+              }
+            });
+          }
+        },
+        error: (error) => {
+          console.error('Error al listar favoritos:', error);
+          alert('Error al verificar favoritos. Por favor, intenta nuevamente.');
+        }
       });
     } else {
-      this.favoritoService.agregarFavorito({ autoId: auto.id }).subscribe({
+      // Asumimos que auto.id es el ofertaId en este contexto
+      // Si no, necesitaríamos obtener el ofertaId de otra forma
+      this.favoritoService.agregarFavorito({ ofertaId: auto.id }).subscribe({
         next: () => this.esFavorito.set(true),
-        error: (error) => console.error('Error al agregar favorito:', error)
+        error: (error) => {
+          console.error('Error al agregar favorito:', error);
+          alert(error.error?.message || 'Error al agregar favorito. Por favor, intenta nuevamente.');
+        }
       });
     }
   }
@@ -116,12 +154,20 @@ export class DetalleAutoComponent implements OnInit {
 
     if (this.resena()) {
       // Actualizar reseña existente
-      this.resenaService.actualizarResena(auto.id, request).subscribe({
+      const update: ResenaUpdate = {
+        puntaje: this.resenaForm.puntaje,
+        comentario: this.resenaForm.comentario || undefined
+      };
+      this.resenaService.actualizarResena(auto.id, update).subscribe({
         next: (resena) => {
           this.resena.set(resena);
           this.mostrarFormResena.set(false);
+          alert('Reseña actualizada exitosamente');
         },
-        error: (error) => console.error('Error al actualizar reseña:', error)
+        error: (error) => {
+          console.error('Error al actualizar reseña:', error);
+          alert(error.error?.message || 'Error al actualizar la reseña. Por favor, intenta nuevamente.');
+        }
       });
     } else {
       // Crear nueva reseña
@@ -129,8 +175,12 @@ export class DetalleAutoComponent implements OnInit {
         next: (resena) => {
           this.resena.set(resena);
           this.mostrarFormResena.set(false);
+          alert('Reseña creada exitosamente');
         },
-        error: (error) => console.error('Error al crear reseña:', error)
+        error: (error) => {
+          console.error('Error al crear reseña:', error);
+          alert(error.error?.message || 'Error al crear la reseña. Por favor, intenta nuevamente.');
+        }
       });
     }
   }

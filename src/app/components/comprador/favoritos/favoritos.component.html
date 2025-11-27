@@ -18,22 +18,17 @@
       @for (favorito of favoritos(); track favorito.id) {
         <div class="favorito-card">
           <div class="auto-image">
-            @if (favorito.auto?.imagenes && favorito.auto.imagenes.length > 0) {
-              <img [src]="favorito.auto.imagenes[0]" [alt]="favorito.auto.marca + ' ' + favorito.auto.modelo" />
-            } @else {
-              <div class="no-image">Sin imagen</div>
-            }
+            <div class="no-image">Sin imagen</div>
           </div>
           <div class="auto-info">
-            <h3>{{ favorito.auto?.marca }} {{ favorito.auto?.modelo }}</h3>
-            <p class="auto-year">{{ favorito.auto?.['año'] }}</p>
+            <h3>{{ favorito.autoMarca }} {{ favorito.autoModelo }}</h3>
+            <p class="auto-year">{{ favorito.autoAnioModelo }}</p>
             <div class="auto-details">
-              <span>{{ favorito.auto?.kilometraje | number }} km</span>
-              <span>{{ favorito.auto?.combustible }}</span>
-              <span>{{ favorito.auto?.transmision }}</span>
+              <span>Concesionaria: {{ favorito.concesionariaNombre }}</span>
+              <span>Stock: {{ favorito.stock }}</span>
             </div>
             <div class="auto-price">
-              <strong>${{ favorito.auto?.precio | number }}</strong>
+              <strong>${{ favorito.precioActual | number }} {{ favorito.moneda }}</strong>
             </div>
             @if (tieneResena(favorito.autoId)) {
               <div class="resena-badge">

@@ -141,22 +141,42 @@ export class BuscarAutosComponent implements OnInit {
     const esFavorito = this.favoritosIds().has(auto.id);
     
     if (esFavorito) {
-      this.favoritoService.eliminarFavorito(auto.id).subscribe({
-        next: () => {
-          const nuevosIds = new Set(this.favoritosIds());
-          nuevosIds.delete(auto.id);
-          this.favoritosIds.set(nuevosIds);
+      // Buscar el favorito para obtener el ofertaId correcto
+      this.favoritoService.listarFavoritos().subscribe({
+        next: (favoritos) => {
+          const favorito = favoritos.find(f => f.autoId === auto.id);
+          if (favorito) {
+            this.favoritoService.eliminarFavorito(favorito.ofertaId).subscribe({
+              next: () => {
+                const nuevosIds = new Set(this.favoritosIds());
+                nuevosIds.delete(auto.id);
+                this.favoritosIds.set(nuevosIds);
+              },
+              error: (error) => {
+                console.error('Error al eliminar favorito:', error);
+                alert('Error al eliminar favorito. Por favor, intenta nuevamente.');
+              }
+            });
+          }
         },
-        error: (error) => console.error('Error al eliminar favorito:', error)
+        error: (error) => {
+          console.error('Error al listar favoritos:', error);
+          alert('Error al verificar favoritos. Por favor, intenta nuevamente.');
+        }
       });
     } else {
-      this.favoritoService.agregarFavorito({ autoId: auto.id }).subscribe({
+      // Asumimos que auto.id es el ofertaId en este contexto
+      // Si el backend requiere un ofertaId diferente, necesitaríamos obtenerlo de otra forma
+      this.favoritoService.agregarFavorito({ ofertaId: auto.id }).subscribe({
         next: () => {
           const nuevosIds = new Set(this.favoritosIds());
           nuevosIds.add(auto.id);
           this.favoritosIds.set(nuevosIds);
         },
-        error: (error) => console.error('Error al agregar favorito:', error)
+        error: (error) => {
+          console.error('Error al agregar favorito:', error);
+          alert(error.error?.message || 'Error al agregar favorito. Por favor, intenta nuevamente.');
+        }
       });
     }
   }
