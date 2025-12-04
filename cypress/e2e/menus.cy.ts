@@ -233,6 +233,100 @@ describe('Menús de navegación por rol de usuario', () => {
       cy.url().should('include', '/dashboard');
       cy.contains('Cargando menú...', { timeout: 1000 }).should('not.exist');
     });
+
+    it('debe bloquear acceso de comprador a rutas de administrador', () => {
+      cy.loginAs('COMPRADOR');
+      
+      // Intentar acceder a rutas de administrador - deben redirigir al dashboard
+      cy.visit('/dashboard/usuarios');
+      cy.url().should('satisfy', (url) => {
+        return url.includes('/dashboard') && !url.includes('/dashboard/usuarios');
+      });
+      
+      cy.visit('/dashboard/concesionarias');
+      cy.url().should('satisfy', (url) => {
+        return url.includes('/dashboard') && !url.includes('/dashboard/concesionarias');
+      });
+      
+      cy.visit('/dashboard/reportes');
+      cy.url().should('satisfy', (url) => {
+        return url.includes('/dashboard') && !url.includes('/dashboard/reportes');
+      });
+    });
+
+    it('debe bloquear acceso de comprador a rutas de concesionaria', () => {
+      cy.loginAs('COMPRADOR');
+      
+      // Intentar acceder a rutas de concesionaria - deben redirigir al dashboard
+      cy.visit('/dashboard/mis-autos');
+      cy.url().should('satisfy', (url) => {
+        return url.includes('/dashboard') && !url.includes('/dashboard/mis-autos');
+      });
+      
+      cy.visit('/dashboard/publicar-auto');
+      cy.url().should('satisfy', (url) => {
+        return url.includes('/dashboard') && !url.includes('/dashboard/publicar-auto');
+      });
+      
+      cy.visit('/dashboard/ventas');
+      cy.url().should('satisfy', (url) => {
+        return url.includes('/dashboard') && !url.includes('/dashboard/ventas');
+      });
+    });
+
+    it('debe bloquear acceso de concesionaria a rutas de comprador', () => {
+      cy.loginAs('CONCESIONARIO');
+      
+      // Intentar acceder a rutas de comprador - deben redirigir al dashboard
+      cy.visit('/dashboard/ofertas');
+      cy.url().should('satisfy', (url) => {
+        return url.includes('/dashboard') && !url.includes('/dashboard/ofertas');
+      });
+      
+      cy.visit('/dashboard/favoritos');
+      cy.url().should('satisfy', (url) => {
+        return url.includes('/dashboard') && !url.includes('/dashboard/favoritos');
+      });
+      
+      cy.visit('/dashboard/mis-compras');
+      cy.url().should('satisfy', (url) => {
+        return url.includes('/dashboard') && !url.includes('/dashboard/mis-compras');
+      });
+    });
+
+    it('debe bloquear acceso de concesionaria a rutas de administrador', () => {
+      cy.loginAs('CONCESIONARIO');
+      
+      // Intentar acceder a rutas de administrador - deben redirigir al dashboard
+      cy.visit('/dashboard/usuarios');
+      cy.url().should('satisfy', (url) => {
+        return url.includes('/dashboard') && !url.includes('/dashboard/usuarios');
+      });
+      
+      cy.visit('/dashboard/concesionarias');
+      cy.url().should('satisfy', (url) => {
+        return url.includes('/dashboard') && !url.includes('/dashboard/concesionarias');
+      });
+      
+      cy.visit('/dashboard/reportes');
+      cy.url().should('satisfy', (url) => {
+        return url.includes('/dashboard') && !url.includes('/dashboard/reportes');
+      });
+    });
+
+    it('debe permitir acceso de administrador a todas las rutas de admin', () => {
+      cy.loginAs('ADMIN');
+      
+      // Verificar acceso a rutas de administrador
+      cy.visit('/dashboard/usuarios');
+      cy.url().should('include', '/dashboard/usuarios');
+      
+      cy.visit('/dashboard/concesionarias');
+      cy.url().should('include', '/dashboard/concesionarias');
+      
+      cy.visit('/dashboard/reportes');
+      cy.url().should('include', '/dashboard/reportes');
+    });
   });
 });
 
