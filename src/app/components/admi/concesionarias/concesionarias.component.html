@@ -1,0 +1,506 @@
+<div class="concesionarias-container">
+  <div class="header-section">
+    <h1>Gestión de Concesionarias</h1>
+    <div class="header-actions">
+      <button 
+        type="button" 
+        class="btn-toggle-filtros"
+        (click)="toggleFiltros()"
+      >
+        {{ mostrarFiltros() ? 'Ocultar' : 'Mostrar' }} Filtros
+      </button>
+      <button 
+        type="button" 
+        class="btn-secondary"
+        (click)="exportarConcesionarias('excel')"
+        [disabled]="isLoading() || concesionariasPaginadas().length === 0"
+      >
+        Exportar Excel
+      </button>
+      <button 
+        type="button" 
+        class="btn-secondary"
+        (click)="exportarConcesionarias('pdf')"
+        [disabled]="isLoading() || concesionariasPaginadas().length === 0"
+      >
+        Exportar PDF
+      </button>
+      <button 
+        type="button" 
+        class="btn-primary"
+        (click)="abrirModalCrear()"
+      >
+        + Crear Concesionaria
+      </button>
+    </div>
+  </div>
+
+  <!-- Filtros -->
+  @if (mostrarFiltros()) {
+    <div class="filtros-section">
+      <form [formGroup]="filtrosForm" (ngSubmit)="buscar()">
+        <div class="filtros-grid">
+          <div class="form-group">
+            <label>Estado</label>
+            <select formControlName="activa">
+              <option [value]="null">Todas</option>
+              <option [value]="true">Activas</option>
+              <option [value]="false">Inactivas</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Buscar</label>
+            <input 
+              type="text" 
+              formControlName="palabraClave"
+              placeholder="Nombre, CUIT, dirección, email..."
+            />
+          </div>
+          <div class="form-group">
+            <label>Ordenar por</label>
+            <select formControlName="sortBy">
+              <option value="nombre">Nombre</option>
+              <option value="fechaAlta">Fecha de alta</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Orden</label>
+            <select formControlName="sortOrder">
+              <option value="ASC">Ascendente</option>
+              <option value="DESC">Descendente</option>
+            </select>
+          </div>
+        </div>
+        <div class="filtros-actions">
+          <button type="button" class="btn-secondary" (click)="limpiarFiltros()">
+            Limpiar
+          </button>
+          <button type="submit" class="btn-primary" [disabled]="isLoading()">
+            Buscar
+          </button>
+        </div>
+      </form>
+    </div>
+  }
+
+  <!-- Resultados -->
+  <div class="resultados-section">
+    @if (isLoading()) {
+      <div class="loading-container">
+        <div class="spinner"></div>
+        <p>Cargando concesionarias...</p>
+      </div>
+    } @else if (concesionarias().length === 0) {
+      <div class="empty-state">
+        <p>No hay concesionarias registradas en el sistema.</p>
+      </div>
+    } @else if (concesionariasFiltradas().length === 0) {
+      <div class="empty-state">
+        <p>No se encontraron concesionarias con los filtros seleccionados.</p>
+      </div>
+    } @else {
+      <div class="resultados-header">
+        <p>Total: {{ totalElements() }} concesionarias 
+          @if (concesionarias().length !== concesionariasFiltradas().length) {
+            ({{ concesionarias().length }} totales)
+          }
+        </p>
+      </div>
+
+      <div class="concesionarias-table-container">
+        <table class="concesionarias-table">
+          <thead>
+            <tr>
+              <th>Nombre</th>
+              <th>CUIT</th>
+              <th>Dirección</th>
+              <th>Teléfono</th>
+              <th>Email</th>
+              <th>Estado</th>
+              <th>Usuario</th>
+              <th>Fecha Alta</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (concesionaria of concesionariasPaginadas(); track concesionaria.id) {
+            <tr [class.inactivo]="!concesionaria.activa">
+              <td><strong>{{ concesionaria.nombre }}</strong></td>
+              <td>{{ concesionaria.cuit }}</td>
+              <td>{{ concesionaria.direccion || '-' }}</td>
+              <td>{{ concesionaria.telefono || '-' }}</td>
+              <td>{{ concesionaria.email || '-' }}</td>
+              <td>
+                @if (concesionaria.activa) {
+                  <span class="badge-activo">Activa</span>
+                } @else {
+                  <span class="badge-inactivo">Inactiva</span>
+                }
+              </td>
+              <td>
+                @if (concesionaria.usuarioNombre) {
+                  <span class="badge-tipo">{{ concesionaria.usuarioNombre }}</span>
+                } @else {
+                  <span class="text-muted">Sin usuario</span>
+                }
+              </td>
+              <td>{{ formatearFecha(concesionaria.fechaAlta) }}</td>
+                <td>
+                  <div class="acciones-cell">
+                    <button 
+                      type="button" 
+                      class="btn-secondary btn-sm"
+                      (click)="verDetalle(concesionaria)"
+                      title="Ver detalle"
+                    >
+                      👁️
+                    </button>
+                    <button 
+                      type="button" 
+                      class="btn-primary btn-sm"
+                      (click)="abrirModalEditar(concesionaria)"
+                      title="Editar"
+                    >
+                      ✏️
+                    </button>
+                    <button 
+                      type="button" 
+                      class="btn-secondary btn-sm"
+                      (click)="verUsuarios(concesionaria)"
+                      title="Ver usuarios"
+                    >
+                      👥
+                    </button>
+                    @if (concesionaria.activa) {
+                      <button 
+                        type="button" 
+                        class="btn-warning btn-sm"
+                        (click)="confirmarDesactivar(concesionaria)"
+                        title="Desactivar"
+                      >
+                        ⏸️
+                      </button>
+                    } @else {
+                      <button 
+                        type="button" 
+                        class="btn-success btn-sm"
+                        (click)="confirmarActivar(concesionaria)"
+                        title="Activar"
+                      >
+                        ▶️
+                      </button>
+                    }
+                    <button 
+                      type="button" 
+                      class="btn-danger btn-sm"
+                      (click)="confirmarEliminar(concesionaria)"
+                      title="Eliminar"
+                    >
+                      🗑️
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Paginación -->
+      @if (totalPages() > 1) {
+        <div class="pagination">
+          <button 
+            type="button"
+            class="btn-pagination"
+            [disabled]="currentPage() === 0"
+            (click)="irAPagina(currentPage() - 1)"
+          >
+            Anterior
+          </button>
+          <span class="page-info">
+            Página {{ currentPage() + 1 }} de {{ totalPages() }}
+          </span>
+          <button 
+            type="button"
+            class="btn-pagination"
+            [disabled]="currentPage() >= totalPages() - 1"
+            (click)="irAPagina(currentPage() + 1)"
+          >
+            Siguiente
+          </button>
+        </div>
+      }
+    }
+  </div>
+</div>
+
+<!-- Modal Crear Concesionaria -->
+@if (mostrarModalCrear()) {
+  <div class="modal-overlay" (click)="cerrarModales()">
+    <div class="modal-content modal-large" (click)="$event.stopPropagation()">
+      <h2>Crear Nueva Concesionaria</h2>
+      <form [formGroup]="concesionariaForm" (ngSubmit)="crearConcesionaria()">
+        <div class="form-grid">
+          <div class="form-group" [class.invalid]="isFieldInvalid('nombre')">
+            <label>Nombre *</label>
+            <input type="text" formControlName="nombre" maxlength="150" />
+            @if (getFieldError('nombre')) {
+              <span class="error-message">{{ getFieldError('nombre') }}</span>
+            }
+          </div>
+          <div class="form-group" [class.invalid]="isFieldInvalid('cuit')">
+            <label>CUIT *</label>
+            <input type="text" formControlName="cuit" maxlength="20" />
+            @if (getFieldError('cuit')) {
+              <span class="error-message">{{ getFieldError('cuit') }}</span>
+            }
+          </div>
+          <div class="form-group">
+            <label>Dirección</label>
+            <input type="text" formControlName="direccion" />
+          </div>
+          <div class="form-group">
+            <label>Teléfono</label>
+            <input type="tel" formControlName="telefono" />
+          </div>
+          <div class="form-group">
+            <label>Email</label>
+            <input type="email" formControlName="email" maxlength="320" />
+          </div>
+          <div class="form-group">
+            <label>Usuario (Opcional)</label>
+            <select formControlName="usuarioId">
+              <option [value]="null">Sin usuario asociado</option>
+              @for (usuario of usuariosDisponibles(); track usuario.id) {
+                <option [value]="usuario.id">{{ usuario.nombre }} {{ usuario.apellido }} ({{ usuario.email }})</option>
+              }
+            </select>
+            <small>Selecciona un usuario de tipo CONCESIONARIA para asociar a esta concesionaria</small>
+          </div>
+        </div>
+        <div class="modal-actions">
+          <button type="button" class="btn-secondary" (click)="cerrarModales()">
+            Cancelar
+          </button>
+          <button type="submit" class="btn-primary" [disabled]="!concesionariaForm.valid || isLoading()">
+            Crear Concesionaria
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+}
+
+<!-- Modal Editar Concesionaria -->
+@if (mostrarModalEditar() && concesionariaSeleccionada()) {
+  <div class="modal-overlay" (click)="cerrarModales()">
+    <div class="modal-content modal-large" (click)="$event.stopPropagation()">
+      <h2>Editar Concesionaria</h2>
+      <form [formGroup]="concesionariaForm" (ngSubmit)="editarConcesionaria()">
+        <div class="form-grid">
+          <div class="form-group" [class.invalid]="isFieldInvalid('nombre')">
+            <label>Nombre *</label>
+            <input type="text" formControlName="nombre" maxlength="150" />
+            @if (getFieldError('nombre')) {
+              <span class="error-message">{{ getFieldError('nombre') }}</span>
+            }
+          </div>
+          <div class="form-group" [class.invalid]="isFieldInvalid('cuit')">
+            <label>CUIT *</label>
+            <input type="text" formControlName="cuit" maxlength="20" />
+            @if (getFieldError('cuit')) {
+              <span class="error-message">{{ getFieldError('cuit') }}</span>
+            }
+          </div>
+          <div class="form-group">
+            <label>Dirección</label>
+            <input type="text" formControlName="direccion" />
+          </div>
+          <div class="form-group">
+            <label>Teléfono</label>
+            <input type="tel" formControlName="telefono" />
+          </div>
+          <div class="form-group">
+            <label>Email</label>
+            <input type="email" formControlName="email" />
+          </div>
+        </div>
+        <div class="modal-actions">
+          <button type="button" class="btn-secondary" (click)="cerrarModales()">
+            Cancelar
+          </button>
+          <button type="submit" class="btn-primary" [disabled]="!concesionariaForm.valid || isLoading()">
+            Guardar Cambios
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+}
+
+<!-- Modal Detalle Concesionaria -->
+@if (mostrarModalDetalle() && concesionariaSeleccionada()) {
+  <div class="modal-overlay" (click)="cerrarModales()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <h2>Detalle de Concesionaria</h2>
+      <div class="detalle-section">
+        <div class="detalle-grid">
+          <div class="detalle-item">
+            <label>ID:</label>
+            <span>{{ concesionariaSeleccionada()!.id }}</span>
+          </div>
+          <div class="detalle-item">
+            <label>Nombre:</label>
+            <span>{{ concesionariaSeleccionada()!.nombre }}</span>
+          </div>
+          <div class="detalle-item">
+            <label>CUIT:</label>
+            <span>{{ concesionariaSeleccionada()!.cuit }}</span>
+          </div>
+          <div class="detalle-item">
+            <label>Dirección:</label>
+            <span>{{ concesionariaSeleccionada()!.direccion || 'No especificado' }}</span>
+          </div>
+          <div class="detalle-item">
+            <label>Teléfono:</label>
+            <span>{{ concesionariaSeleccionada()!.telefono || 'No especificado' }}</span>
+          </div>
+          <div class="detalle-item">
+            <label>Email:</label>
+            <span>{{ concesionariaSeleccionada()!.email || 'No especificado' }}</span>
+          </div>
+          <div class="detalle-item">
+            <label>Estado:</label>
+            <span [class.badge-activo]="concesionariaSeleccionada()!.activa" [class.badge-inactivo]="!concesionariaSeleccionada()!.activa">
+              {{ concesionariaSeleccionada()!.activa ? 'Activa' : 'Inactiva' }}
+            </span>
+          </div>
+          <div class="detalle-item">
+            <label>Usuario Asociado:</label>
+            <span>{{ concesionariaSeleccionada()!.usuarioNombre || 'Sin usuario asociado' }}</span>
+          </div>
+          <div class="detalle-item">
+            <label>Fecha de Alta:</label>
+            <span>{{ formatearFecha(concesionariaSeleccionada()!.fechaAlta) }}</span>
+          </div>
+          @if (concesionariaSeleccionada()!.fechaActualizacion) {
+            <div class="detalle-item">
+              <label>Última Actualización:</label>
+              <span>{{ formatearFecha(concesionariaSeleccionada()!.fechaActualizacion) }}</span>
+            </div>
+          }
+          @if (concesionariaSeleccionada()!.cantidadUsuarios !== undefined) {
+            <div class="detalle-item">
+              <label>Usuarios:</label>
+              <span>{{ concesionariaSeleccionada()!.cantidadUsuarios }}</span>
+            </div>
+          }
+          @if (concesionariaSeleccionada()!.cantidadAutos !== undefined) {
+            <div class="detalle-item">
+              <label>Autos:</label>
+              <span>{{ concesionariaSeleccionada()!.cantidadAutos }}</span>
+            </div>
+          }
+          @if (concesionariaSeleccionada()!.cantidadVentas !== undefined) {
+            <div class="detalle-item">
+              <label>Ventas:</label>
+              <span>{{ concesionariaSeleccionada()!.cantidadVentas }}</span>
+            </div>
+          }
+        </div>
+      </div>
+      <div class="modal-actions">
+        <button type="button" class="btn-primary" (click)="cerrarModales()">
+          Cerrar
+        </button>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- Modal Usuarios de Concesionaria -->
+@if (mostrarModalUsuarios() && concesionariaSeleccionada()) {
+  <div class="modal-overlay" (click)="cerrarModales()">
+    <div class="modal-content modal-large" (click)="$event.stopPropagation()">
+      <h2>Usuarios de {{ concesionariaSeleccionada()!.nombre }}</h2>
+      @if (usuariosConcesionaria().length === 0) {
+        <p>Esta concesionaria no tiene usuarios asociados.</p>
+      } @else {
+        <div class="usuarios-list">
+          <table class="usuarios-table">
+            <thead>
+              <tr>
+                <th>Nombre</th>
+                <th>Email</th>
+                <th>Estado</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (usuario of usuariosConcesionaria(); track usuario.id) {
+                <tr>
+                  <td>{{ usuario.nombre }} {{ usuario.apellido }}</td>
+                  <td>{{ usuario.email }}</td>
+                  <td>
+                    @if (usuario.activo) {
+                      <span class="badge-activo">Activo</span>
+                    } @else {
+                      <span class="badge-inactivo">Inactivo</span>
+                    }
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      }
+      <div class="modal-actions">
+        <button type="button" class="btn-primary" (click)="cerrarModales()">
+          Cerrar
+        </button>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- Modales de Eliminar, Activar, Desactivar (similares a usuarios) -->
+@if (mostrarModalEliminar() && concesionariaSeleccionada()) {
+  <div class="modal-overlay" (click)="cerrarModales()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <h2>Confirmar Eliminación</h2>
+      <p>¿Estás seguro de que deseas eliminar la concesionaria <strong>{{ concesionariaSeleccionada()!.nombre }}</strong>?</p>
+      <p class="warning">Esta acción no se puede deshacer.</p>
+      <div class="modal-actions">
+        <button type="button" class="btn-secondary" (click)="cerrarModales()">Cancelar</button>
+        <button type="button" class="btn-danger" (click)="eliminarConcesionaria()" [disabled]="isLoading()">Eliminar</button>
+      </div>
+    </div>
+  </div>
+}
+
+@if (mostrarModalActivar() && concesionariaSeleccionada()) {
+  <div class="modal-overlay" (click)="cerrarModales()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <h2>Activar Concesionaria</h2>
+      <p>¿Deseas activar la concesionaria <strong>{{ concesionariaSeleccionada()!.nombre }}</strong>?</p>
+      <div class="modal-actions">
+        <button type="button" class="btn-secondary" (click)="cerrarModales()">Cancelar</button>
+        <button type="button" class="btn-success" (click)="activarConcesionaria()" [disabled]="isLoading()">Activar</button>
+      </div>
+    </div>
+  </div>
+}
+
+@if (mostrarModalDesactivar() && concesionariaSeleccionada()) {
+  <div class="modal-overlay" (click)="cerrarModales()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <h2>Desactivar Concesionaria</h2>
+      <p>¿Deseas desactivar la concesionaria <strong>{{ concesionariaSeleccionada()!.nombre }}</strong>?</p>
+      <p class="warning">La concesionaria no podrá operar hasta que sea reactivada.</p>
+      <div class="modal-actions">
+        <button type="button" class="btn-secondary" (click)="cerrarModales()">Cancelar</button>
+        <button type="button" class="btn-warning" (click)="desactivarConcesionaria()" [disabled]="isLoading()">Desactivar</button>
+      </div>
+    </div>
+  </div>
+}
+

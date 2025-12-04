@@ -1,0 +1,253 @@
+<div class="gestion-autos-container">
+  <div class="header-section">
+    <h1>Gestión de Autos</h1>
+    <div class="header-actions">
+      <button 
+        type="button" 
+        class="btn-toggle-filtros"
+        (click)="toggleFiltros()"
+      >
+        {{ mostrarFiltros() ? 'Ocultar' : 'Mostrar' }} Filtros
+      </button>
+      <button 
+        type="button" 
+        class="btn-primary"
+        (click)="abrirModalCrear()"
+      >
+        + Crear Auto
+      </button>
+    </div>
+  </div>
+
+  <!-- Filtros -->
+  @if (mostrarFiltros()) {
+    <div class="filtros-section">
+      <form [formGroup]="filtrosForm" (ngSubmit)="buscar()">
+        <div class="filtros-grid">
+          <div class="form-group">
+            <label>Buscar</label>
+            <input 
+              type="text" 
+              formControlName="palabraClave"
+              placeholder="Marca, modelo, año..."
+            />
+          </div>
+          <div class="form-group">
+            <label>Marca</label>
+            <input 
+              type="text" 
+              formControlName="marca"
+              placeholder="Filtrar por marca"
+            />
+          </div>
+          <div class="form-group">
+            <label>Modelo</label>
+            <input 
+              type="text" 
+              formControlName="modelo"
+              placeholder="Filtrar por modelo"
+            />
+          </div>
+          <div class="form-group">
+            <label>Ordenar por</label>
+            <select formControlName="sortBy">
+              <option value="marca">Marca</option>
+              <option value="modelo">Modelo</option>
+              <option value="anioModelo">Año</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Orden</label>
+            <select formControlName="sortOrder">
+              <option value="ASC">Ascendente</option>
+              <option value="DESC">Descendente</option>
+            </select>
+          </div>
+        </div>
+        <div class="filtros-actions">
+          <button type="button" class="btn-secondary" (click)="limpiarFiltros()">
+            Limpiar
+          </button>
+          <button type="submit" class="btn-primary" [disabled]="isLoading()">
+            Buscar
+          </button>
+        </div>
+      </form>
+    </div>
+  }
+
+  <!-- Resultados -->
+  <div class="resultados-section">
+    @if (isLoading()) {
+      <div class="loading-container">
+        <div class="spinner"></div>
+        <p>Cargando autos...</p>
+      </div>
+    } @else if (autos().length === 0) {
+      <div class="empty-state">
+        <p>No hay autos registrados en el sistema.</p>
+      </div>
+    } @else if (autosFiltrados().length === 0) {
+      <div class="empty-state">
+        <p>No se encontraron autos con los filtros seleccionados.</p>
+      </div>
+    } @else {
+      <div class="resultados-header">
+        <p>Total: {{ totalElements() }} autos 
+          @if (autos().length !== autosFiltrados().length) {
+            ({{ autos().length }} totales)
+          }
+        </p>
+      </div>
+
+      <div class="autos-table-container">
+        <table class="autos-table">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Marca</th>
+              <th>Modelo</th>
+              <th>Año</th>
+              <th>Fecha Alta</th>
+              <th>Última Actualización</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (auto of autosPaginados(); track auto.id) {
+              <tr>
+                <td>{{ auto.id }}</td>
+                <td><strong>{{ auto.marca }}</strong></td>
+                <td>{{ auto.modelo }}</td>
+                <td>{{ auto.anioModelo }}</td>
+                <td>{{ formatearFecha(auto.fechaAlta) }}</td>
+                <td>{{ formatearFecha(auto.fechaActualizacion) }}</td>
+                <td>
+                  <div class="acciones-cell">
+                    <button 
+                      type="button" 
+                      class="btn-danger btn-sm"
+                      (click)="confirmarEliminar(auto)"
+                      title="Eliminar"
+                    >
+                      🗑️
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Paginación -->
+      @if (totalPages() > 1) {
+        <div class="pagination">
+          <button 
+            type="button"
+            class="btn-pagination"
+            [disabled]="currentPage() === 0"
+            (click)="irAPagina(currentPage() - 1)"
+          >
+            Anterior
+          </button>
+          <span class="page-info">
+            Página {{ currentPage() + 1 }} de {{ totalPages() }}
+          </span>
+          <button 
+            type="button"
+            class="btn-pagination"
+            [disabled]="currentPage() >= totalPages() - 1"
+            (click)="irAPagina(currentPage() + 1)"
+          >
+            Siguiente
+          </button>
+        </div>
+      }
+    }
+  </div>
+</div>
+
+<!-- Modal Crear Auto -->
+@if (mostrarModalCrear()) {
+  <div class="modal-overlay" (click)="cerrarModales()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <h2>Crear Nuevo Auto</h2>
+      <form [formGroup]="autoForm" (ngSubmit)="crearAuto()">
+        <div class="form-grid">
+          <div class="form-group" [class.invalid]="isFieldInvalid('marca')">
+            <label>Marca *</label>
+            <input 
+              type="text" 
+              formControlName="marca" 
+              maxlength="100"
+              placeholder="Ej: Toyota"
+            />
+            @if (getFieldError('marca')) {
+              <span class="error-message">{{ getFieldError('marca') }}</span>
+            }
+          </div>
+          <div class="form-group" [class.invalid]="isFieldInvalid('modelo')">
+            <label>Modelo *</label>
+            <input 
+              type="text" 
+              formControlName="modelo" 
+              maxlength="100"
+              placeholder="Ej: Corolla"
+            />
+            @if (getFieldError('modelo')) {
+              <span class="error-message">{{ getFieldError('modelo') }}</span>
+            }
+          </div>
+          <div class="form-group" [class.invalid]="isFieldInvalid('anioModelo')">
+            <label>Año del Modelo *</label>
+            <input 
+              type="number" 
+              formControlName="anioModelo" 
+              [min]="1900"
+              [max]="getAnioMaximo()"
+              placeholder="Ej: 2024"
+            />
+            @if (getFieldError('anioModelo')) {
+              <span class="error-message">{{ getFieldError('anioModelo') }}</span>
+            }
+            <small>Debe ser mayor o igual a 1900</small>
+          </div>
+        </div>
+        <div class="modal-actions">
+          <button type="button" class="btn-secondary" (click)="cerrarModales()">
+            Cancelar
+          </button>
+          <button type="submit" class="btn-primary" [disabled]="!autoForm.valid || isLoading()">
+            Crear Auto
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+}
+
+<!-- Modal Eliminar Auto -->
+@if (mostrarModalEliminar() && autoSeleccionado()) {
+  <div class="modal-overlay" (click)="cerrarModales()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <h2>Eliminar Auto</h2>
+      <p>¿Estás seguro de que deseas eliminar el auto <strong>{{ autoSeleccionado()!.marca }} {{ autoSeleccionado()!.modelo }} ({{ autoSeleccionado()!.anioModelo }})</strong>?</p>
+      <p class="warning-text">⚠️ Esta acción no se puede deshacer. Si el auto tiene ofertas o reseñas asociadas, estas podrían verse afectadas.</p>
+      <div class="modal-actions">
+        <button type="button" class="btn-secondary" (click)="cerrarModales()">
+          Cancelar
+        </button>
+        <button 
+          type="button" 
+          class="btn-danger" 
+          (click)="eliminarAuto()"
+          [disabled]="isLoading()"
+        >
+          Eliminar
+        </button>
+      </div>
+    </div>
+  </div>
+}
+

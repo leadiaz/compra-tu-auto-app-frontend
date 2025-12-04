@@ -1,0 +1,291 @@
+<div class="mis-autos-container">
+  <div class="header-section">
+    <h1>Mis Autos</h1>
+    <div class="header-actions">
+      <button 
+        type="button" 
+        class="btn-toggle-filtros"
+        (click)="toggleFiltros()"
+      >
+        {{ mostrarFiltros() ? 'Ocultar' : 'Mostrar' }} Filtros
+      </button>
+      <button 
+        type="button" 
+        class="btn-primary"
+        routerLink="/dashboard/publicar-auto"
+      >
+        + Publicar Auto
+      </button>
+    </div>
+  </div>
+
+  <!-- Filtros -->
+  @if (mostrarFiltros()) {
+    <div class="filtros-section">
+      <form [formGroup]="filtrosForm" (ngSubmit)="buscar()">
+        <div class="filtros-grid">
+          <!-- Marca y Modelo -->
+          <div class="form-group">
+            <label>Marca</label>
+            <select formControlName="marca">
+              <option value="">Todas las marcas</option>
+              @for (marca of marcas(); track marca) {
+                <option [value]="marca">{{ marca }}</option>
+              }
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Modelo</label>
+            <select formControlName="modelo" [disabled]="!filtrosForm.get('marca')?.value">
+              <option value="">Todos los modelos</option>
+              @for (modelo of modelos(); track modelo) {
+                <option [value]="modelo">{{ modelo }}</option>
+              }
+            </select>
+          </div>
+
+          <!-- Precio -->
+          <div class="form-group">
+            <label>Precio mínimo</label>
+            <input 
+              type="number" 
+              formControlName="precioMin"
+              placeholder="0"
+              min="0"
+            />
+          </div>
+          <div class="form-group">
+            <label>Precio máximo</label>
+            <input 
+              type="number" 
+              formControlName="precioMax"
+              placeholder="Sin límite"
+              min="0"
+            />
+          </div>
+
+          <!-- Estado -->
+          <div class="form-group">
+            <label>Estado</label>
+            <select formControlName="activo">
+              <option [value]="null">Todos</option>
+              <option [value]="true">Activos</option>
+              <option [value]="false">Inactivos</option>
+            </select>
+          </div>
+
+          <!-- Ordenamiento -->
+          <div class="form-group">
+            <label>Ordenar por</label>
+            <select formControlName="sortBy">
+              <option value="fechaPublicacion">Fecha de publicación</option>
+              <option value="precio">Precio</option>
+              <option value="marca">Marca</option>
+              <option value="modelo">Modelo</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Orden</label>
+            <select formControlName="sortOrder">
+              <option value="ASC">Ascendente</option>
+              <option value="DESC">Descendente</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="filtros-actions">
+          <button type="button" class="btn-secondary" (click)="limpiarFiltros()">
+            Limpiar
+          </button>
+          <button type="submit" class="btn-primary" [disabled]="isLoading()">
+            Buscar
+          </button>
+        </div>
+      </form>
+    </div>
+  }
+
+  <!-- Resultados -->
+  <div class="resultados-section">
+    @if (isLoading()) {
+      <div class="loading-container">
+        <div class="spinner"></div>
+        <p>Cargando autos...</p>
+      </div>
+    } @else if (autos().length === 0) {
+      <div class="empty-state">
+        <p>No tienes autos publicados aún.</p>
+        <button 
+          type="button" 
+          class="btn-primary"
+          routerLink="/dashboard/publicar-auto"
+        >
+          Publicar mi primer auto
+        </button>
+      </div>
+    } @else {
+      <div class="resultados-header">
+        <p>Total: {{ totalElements() }} autos</p>
+      </div>
+
+      <div class="autos-grid">
+        @for (auto of autos(); track auto.id) {
+          <div class="auto-card" [class.inactivo]="!auto.activo">
+            <div class="auto-image">
+              @if (auto.imagenes && auto.imagenes.length > 0) {
+                <img [src]="auto.imagenes[0]" [alt]="auto.marca + ' ' + auto.modelo" />
+              } @else {
+                <div class="no-image">Sin imagen</div>
+              }
+              @if (!auto.activo) {
+                <div class="badge-inactivo">Inactivo</div>
+              }
+            </div>
+            <div class="auto-info">
+              <h3>{{ auto.marca }} {{ auto.modelo }}</h3>
+              <p class="auto-year">{{ auto['año'] }}</p>
+              <div class="auto-details">
+                <span>{{ auto.kilometraje | number }} km</span>
+                <span>{{ auto.combustible }}</span>
+                <span>{{ auto.transmision }}</span>
+              </div>
+              <div class="auto-price">
+                <strong>{{ formatearPrecio(auto.precio) }}</strong>
+              </div>
+              <div class="auto-actions">
+                <button 
+                  type="button" 
+                  class="btn-secondary btn-sm"
+                  (click)="verDetalle(auto)"
+                >
+                  Ver
+                </button>
+                <button 
+                  type="button" 
+                  class="btn-primary btn-sm"
+                  (click)="editarAuto(auto)"
+                >
+                  Editar
+                </button>
+                @if (auto.activo) {
+                  <button 
+                    type="button" 
+                    class="btn-warning btn-sm"
+                    (click)="confirmarDesactivar(auto)"
+                  >
+                    Desactivar
+                  </button>
+                } @else {
+                  <button 
+                    type="button" 
+                    class="btn-success btn-sm"
+                    (click)="confirmarActivar(auto)"
+                  >
+                    Activar
+                  </button>
+                }
+                <button 
+                  type="button" 
+                  class="btn-danger btn-sm"
+                  (click)="confirmarEliminar(auto)"
+                >
+                  Eliminar
+                </button>
+                <button 
+                  type="button" 
+                  class="btn-secondary btn-sm"
+                  (click)="duplicarAuto(auto)"
+                  title="Duplicar auto"
+                >
+                  📋
+                </button>
+              </div>
+            </div>
+          </div>
+        }
+      </div>
+
+      <!-- Paginación -->
+      @if (totalPages() > 1) {
+        <div class="pagination">
+          <button 
+            type="button"
+            class="btn-pagination"
+            [disabled]="currentPage() === 0"
+            (click)="irAPagina(currentPage() - 1)"
+          >
+            Anterior
+          </button>
+          <span class="page-info">
+            Página {{ currentPage() + 1 }} de {{ totalPages() }}
+          </span>
+          <button 
+            type="button"
+            class="btn-pagination"
+            [disabled]="currentPage() >= totalPages() - 1"
+            (click)="irAPagina(currentPage() + 1)"
+          >
+            Siguiente
+          </button>
+        </div>
+      }
+    }
+  </div>
+</div>
+
+<!-- Modal Eliminar -->
+@if (mostrarModalEliminar()) {
+  <div class="modal-overlay" (click)="cerrarModales()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <h2>Confirmar Eliminación</h2>
+      <p>¿Estás seguro de que deseas eliminar el auto <strong>{{ autoSeleccionado()?.marca }} {{ autoSeleccionado()?.modelo }}</strong>?</p>
+      <p class="warning">Esta acción no se puede deshacer.</p>
+      <div class="modal-actions">
+        <button type="button" class="btn-secondary" (click)="cerrarModales()">
+          Cancelar
+        </button>
+        <button type="button" class="btn-danger" (click)="eliminarAuto()" [disabled]="isLoading()">
+          Eliminar
+        </button>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- Modal Activar -->
+@if (mostrarModalActivar()) {
+  <div class="modal-overlay" (click)="cerrarModales()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <h2>Activar Auto</h2>
+      <p>¿Deseas activar el auto <strong>{{ autoSeleccionado()?.marca }} {{ autoSeleccionado()?.modelo }}</strong>?</p>
+      <div class="modal-actions">
+        <button type="button" class="btn-secondary" (click)="cerrarModales()">
+          Cancelar
+        </button>
+        <button type="button" class="btn-success" (click)="activarAuto()" [disabled]="isLoading()">
+          Activar
+        </button>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- Modal Desactivar -->
+@if (mostrarModalDesactivar()) {
+  <div class="modal-overlay" (click)="cerrarModales()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <h2>Desactivar Auto</h2>
+      <p>¿Deseas desactivar el auto <strong>{{ autoSeleccionado()?.marca }} {{ autoSeleccionado()?.modelo }}</strong>?</p>
+      <p class="warning">El auto dejará de ser visible para los compradores.</p>
+      <div class="modal-actions">
+        <button type="button" class="btn-secondary" (click)="cerrarModales()">
+          Cancelar
+        </button>
+        <button type="button" class="btn-warning" (click)="desactivarAuto()" [disabled]="isLoading()">
+          Desactivar
+        </button>
+      </div>
+    </div>
+  </div>
+}
+

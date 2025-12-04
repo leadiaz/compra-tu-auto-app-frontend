@@ -1,0 +1,245 @@
+<div class="compras-container">
+  <div class="header-section">
+    <h1>Compras Realizadas</h1>
+    <div class="header-actions">
+      <button 
+        type="button" 
+        class="btn-toggle-filtros"
+        (click)="toggleFiltros()"
+      >
+        {{ mostrarFiltros() ? 'Ocultar' : 'Mostrar' }} Filtros
+      </button>
+      <button 
+        type="button" 
+        class="btn-secondary"
+        (click)="exportarCompras('excel')"
+        [disabled]="isLoading() || compras().length === 0"
+      >
+        Exportar Excel
+      </button>
+      <button 
+        type="button" 
+        class="btn-secondary"
+        (click)="exportarCompras('pdf')"
+        [disabled]="isLoading() || compras().length === 0"
+      >
+        Exportar PDF
+      </button>
+    </div>
+  </div>
+
+  <!-- Filtros -->
+  @if (mostrarFiltros()) {
+    <div class="filtros-section">
+      <form [formGroup]="filtrosForm" (ngSubmit)="buscar()">
+        <div class="filtros-grid">
+          <div class="form-group">
+            <label>Fecha desde</label>
+            <input type="date" formControlName="fechaDesde" />
+          </div>
+          <div class="form-group">
+            <label>Fecha hasta</label>
+            <input type="date" formControlName="fechaHasta" />
+          </div>
+          <div class="form-group">
+            <label>ID Comprador</label>
+            <input 
+              type="number" 
+              formControlName="compradorId"
+              placeholder="ID del comprador"
+            />
+          </div>
+          <div class="form-group">
+            <label>ID Concesionaria</label>
+            <input 
+              type="number" 
+              formControlName="concesionariaId"
+              placeholder="ID de la concesionaria"
+            />
+          </div>
+          <div class="form-group">
+            <label>Precio mínimo</label>
+            <input 
+              type="number" 
+              formControlName="precioMin"
+              placeholder="0"
+            />
+          </div>
+          <div class="form-group">
+            <label>Precio máximo</label>
+            <input 
+              type="number" 
+              formControlName="precioMax"
+              placeholder="10000000"
+            />
+          </div>
+          <div class="form-group">
+            <label>Marca</label>
+            <input 
+              type="text" 
+              formControlName="marca"
+              placeholder="Marca del auto"
+            />
+          </div>
+          <div class="form-group">
+            <label>Ordenar por</label>
+            <select formControlName="sortBy">
+              <option value="fechaCompra">Fecha</option>
+              <option value="precio">Precio</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Orden</label>
+            <select formControlName="sortOrder">
+              <option value="ASC">Ascendente</option>
+              <option value="DESC">Descendente</option>
+            </select>
+          </div>
+        </div>
+        <div class="filtros-actions">
+          <button type="button" class="btn-secondary" (click)="limpiarFiltros()">
+            Limpiar
+          </button>
+          <button type="submit" class="btn-primary" [disabled]="isLoading()">
+            Buscar
+          </button>
+        </div>
+      </form>
+    </div>
+  }
+
+  <!-- Resultados -->
+  <div class="resultados-section">
+    @if (isLoading()) {
+      <div class="loading-container">
+        <div class="spinner"></div>
+        <p>Cargando compras...</p>
+      </div>
+    } @else if (compras().length === 0) {
+      <div class="empty-state">
+        <p>No se encontraron compras con los filtros seleccionados.</p>
+      </div>
+    } @else {
+      <div class="resultados-header">
+        <p>Total: {{ totalElements() }} compras</p>
+      </div>
+
+      <div class="compras-table-container">
+        <table class="compras-table">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Auto</th>
+              <th>Comprador ID</th>
+              <th>Concesionaria</th>
+              <th>Precio</th>
+              <th>Fecha</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (compra of compras(); track compra.id) {
+              <tr>
+                <td>{{ compra.id }}</td>
+                <td>
+                  @if (compra.auto) {
+                    {{ compra.auto.marca }} {{ compra.auto.modelo }}
+                  } @else {
+                    Auto ID: {{ compra.autoId }}
+                  }
+                </td>
+                <td>{{ compra.usuarioId }}</td>
+                <td>{{ compra.concesionariaNombre || 'ID: ' + compra.concesionariaId }}</td>
+                <td><strong>{{ formatearPrecio(compra.precio) }}</strong></td>
+                <td>{{ formatearFecha(compra.fechaCompra) }}</td>
+                <td>
+                  <button 
+                    type="button" 
+                    class="btn-primary btn-sm"
+                    (click)="verDetalle(compra)"
+                  >
+                    Ver Detalle
+                  </button>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Paginación -->
+      @if (totalPages() > 1) {
+        <div class="pagination">
+          <button 
+            type="button"
+            class="btn-pagination"
+            [disabled]="currentPage() === 0"
+            (click)="irAPagina(currentPage() - 1)"
+          >
+            Anterior
+          </button>
+          <span class="page-info">
+            Página {{ currentPage() + 1 }} de {{ totalPages() }}
+          </span>
+          <button 
+            type="button"
+            class="btn-pagination"
+            [disabled]="currentPage() >= totalPages() - 1"
+            (click)="irAPagina(currentPage() + 1)"
+          >
+            Siguiente
+          </button>
+        </div>
+      }
+    }
+  </div>
+</div>
+
+<!-- Modal Detalle Compra -->
+@if (mostrarModalDetalle() && compraSeleccionada()) {
+  <div class="modal-overlay" (click)="cerrarModal()">
+    <div class="modal-content modal-large" (click)="$event.stopPropagation()">
+      <h2>Detalle de Compra</h2>
+      <div class="detalle-section">
+        <div class="detalle-grid">
+          <div class="detalle-item">
+            <label>ID Compra:</label>
+            <span>{{ compraSeleccionada()!.id }}</span>
+          </div>
+          <div class="detalle-item">
+            <label>Auto:</label>
+            <span>
+              @if (compraSeleccionada()!.auto) {
+                {{ compraSeleccionada()!.auto.marca }} {{ compraSeleccionada()!.auto.modelo }} ({{ compraSeleccionada()!.auto['año'] }})
+              } @else {
+                Auto ID: {{ compraSeleccionada()!.autoId }}
+              }
+            </span>
+          </div>
+          <div class="detalle-item">
+            <label>Comprador ID:</label>
+            <span>{{ compraSeleccionada()!.usuarioId }}</span>
+          </div>
+          <div class="detalle-item">
+            <label>Concesionaria:</label>
+            <span>{{ compraSeleccionada()!.concesionariaNombre || 'ID: ' + compraSeleccionada()!.concesionariaId }}</span>
+          </div>
+          <div class="detalle-item">
+            <label>Precio:</label>
+            <span class="precio">{{ formatearPrecio(compraSeleccionada()!.precio) }}</span>
+          </div>
+          <div class="detalle-item">
+            <label>Fecha de Compra:</label>
+            <span>{{ formatearFecha(compraSeleccionada()!.fechaCompra) }}</span>
+          </div>
+        </div>
+      </div>
+      <div class="modal-actions">
+        <button type="button" class="btn-primary" (click)="cerrarModal()">
+          Cerrar
+        </button>
+      </div>
+    </div>
+  </div>
+}
+

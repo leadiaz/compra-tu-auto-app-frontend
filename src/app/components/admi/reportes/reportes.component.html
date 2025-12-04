@@ -1,0 +1,254 @@
+<div class="reportes-container">
+  <div class="header-section">
+    <h1>Reportes Administrativos</h1>
+    <div class="header-actions">
+      <button 
+        type="button" 
+        class="btn-secondary"
+        (click)="aplicarFiltros()"
+        [disabled]="isLoading()"
+      >
+        Aplicar Filtros
+      </button>
+      <button 
+        type="button" 
+        class="btn-secondary"
+        (click)="limpiarFiltros()"
+        [disabled]="isLoading()"
+      >
+        Limpiar Filtros
+      </button>
+    </div>
+  </div>
+
+  <!-- Filtros -->
+  <div class="filtros-section">
+    <form [formGroup]="filtrosForm">
+      <div class="filtros-grid">
+        <div class="form-group">
+          <label>Fecha desde</label>
+          <input type="date" formControlName="fechaDesde" />
+        </div>
+        <div class="form-group">
+          <label>Fecha hasta</label>
+          <input type="date" formControlName="fechaHasta" />
+        </div>
+        <div class="form-group">
+          <label>Período</label>
+          <select formControlName="periodo">
+            <option value="">Todos</option>
+            <option value="mes">Mes actual</option>
+            <option value="trimestre">Trimestre actual</option>
+            <option value="año">Año actual</option>
+          </select>
+        </div>
+      </div>
+    </form>
+  </div>
+
+  @if (isLoading()) {
+    <div class="loading-container">
+      <div class="spinner"></div>
+      <p>Cargando reportes...</p>
+    </div>
+  } @else {
+    <div class="reportes-grid">
+      <!-- Top 5 Autos Más Vendidos -->
+      <div class="reporte-card">
+        <div class="reporte-header">
+          <h2>Top 5 Autos Más Vendidos</h2>
+          <div class="reporte-actions">
+            <button 
+              type="button" 
+              class="btn-secondary btn-sm"
+              (click)="exportarReporte('autos-mas-vendidos', 'excel')"
+            >
+              Excel
+            </button>
+            <button 
+              type="button" 
+              class="btn-secondary btn-sm"
+              (click)="exportarReporte('autos-mas-vendidos', 'pdf')"
+            >
+              PDF
+            </button>
+          </div>
+        </div>
+        <div class="reporte-content">
+          @if (autosMasVendidos().length === 0) {
+            <p class="empty-message">No hay datos disponibles</p>
+          } @else {
+            <table class="reporte-table">
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>Auto</th>
+                  <th>Ventas</th>
+                  <th>Ingresos</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (item of autosMasVendidos(); track item.autoId; let i = $index) {
+                  <tr>
+                    <td>{{ i + 1 }}</td>
+                    <td>{{ item.marca }} {{ item.modelo }} ({{ item['año'] }})</td>
+                    <td>{{ item.cantidadVentas }}</td>
+                    <td>{{ formatearPrecio(item.totalIngresos) }}</td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          }
+        </div>
+      </div>
+
+      <!-- Top 5 Usuarios con Más Compras -->
+      <div class="reporte-card">
+        <div class="reporte-header">
+          <h2>Top 5 Usuarios con Más Compras</h2>
+          <div class="reporte-actions">
+            <button 
+              type="button" 
+              class="btn-secondary btn-sm"
+              (click)="exportarReporte('usuarios-mas-compras', 'excel')"
+            >
+              Excel
+            </button>
+            <button 
+              type="button" 
+              class="btn-secondary btn-sm"
+              (click)="exportarReporte('usuarios-mas-compras', 'pdf')"
+            >
+              PDF
+            </button>
+          </div>
+        </div>
+        <div class="reporte-content">
+          @if (usuariosMasCompras().length === 0) {
+            <p class="empty-message">No hay datos disponibles</p>
+          } @else {
+            <table class="reporte-table">
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>Usuario</th>
+                  <th>Compras</th>
+                  <th>Total Gastado</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (item of usuariosMasCompras(); track item.usuarioId; let i = $index) {
+                  <tr>
+                    <td>{{ i + 1 }}</td>
+                    <td>{{ item.nombre }} {{ item.apellido }}</td>
+                    <td>{{ item.cantidadCompras }}</td>
+                    <td>{{ formatearPrecio(item.totalGastado) }}</td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          }
+        </div>
+      </div>
+
+      <!-- Top 5 Autos Mejores Rankeados -->
+      <div class="reporte-card">
+        <div class="reporte-header">
+          <h2>Top 5 Autos Mejores Rankeados</h2>
+          <div class="reporte-actions">
+            <button 
+              type="button" 
+              class="btn-secondary btn-sm"
+              (click)="exportarReporte('autos-mejores-rankeados', 'excel')"
+            >
+              Excel
+            </button>
+            <button 
+              type="button" 
+              class="btn-secondary btn-sm"
+              (click)="exportarReporte('autos-mejores-rankeados', 'pdf')"
+            >
+              PDF
+            </button>
+          </div>
+        </div>
+        <div class="reporte-content">
+          @if (autosMejoresRankeados().length === 0) {
+            <p class="empty-message">No hay datos disponibles</p>
+          } @else {
+            <table class="reporte-table">
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>Auto</th>
+                  <th>Puntaje</th>
+                  <th>Reseñas</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (item of autosMejoresRankeados(); track item.autoId; let i = $index) {
+                  <tr>
+                    <td>{{ i + 1 }}</td>
+                    <td>{{ item.marca }} {{ item.modelo }} ({{ item['año'] }})</td>
+                    <td><strong>{{ item.puntajePromedio.toFixed(1) }}/10</strong></td>
+                    <td>{{ item.cantidadResenas }}</td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          }
+        </div>
+      </div>
+
+      <!-- Top 5 Agencias con Más Ventas -->
+      <div class="reporte-card">
+        <div class="reporte-header">
+          <h2>Top 5 Agencias con Más Ventas</h2>
+          <div class="reporte-actions">
+            <button 
+              type="button" 
+              class="btn-secondary btn-sm"
+              (click)="exportarReporte('agencias-mas-ventas', 'excel')"
+            >
+              Excel
+            </button>
+            <button 
+              type="button" 
+              class="btn-secondary btn-sm"
+              (click)="exportarReporte('agencias-mas-ventas', 'pdf')"
+            >
+              PDF
+            </button>
+          </div>
+        </div>
+        <div class="reporte-content">
+          @if (agenciasMasVentas().length === 0) {
+            <p class="empty-message">No hay datos disponibles</p>
+          } @else {
+            <table class="reporte-table">
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>Concesionaria</th>
+                  <th>Ventas</th>
+                  <th>Ingresos</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (item of agenciasMasVentas(); track item.concesionariaId; let i = $index) {
+                  <tr>
+                    <td>{{ i + 1 }}</td>
+                    <td>{{ item.razonSocial }}</td>
+                    <td>{{ item.cantidadVentas }}</td>
+                    <td>{{ formatearPrecio(item.totalIngresos) }}</td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          }
+        </div>
+      </div>
+    </div>
+  }
+</div>
+

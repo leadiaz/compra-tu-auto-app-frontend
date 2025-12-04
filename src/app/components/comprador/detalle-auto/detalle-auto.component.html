@@ -1,0 +1,191 @@
+<div class="detalle-auto-container">
+  @if (isLoading()) {
+    <div class="loading-container">
+      <div class="spinner"></div>
+      <p>Cargando auto...</p>
+    </div>
+  } @else if (auto()) {
+    <div class="detalle-content">
+      <button type="button" class="btn-volver" (click)="volver()">
+        ← Volver
+      </button>
+
+      <div class="auto-header">
+        <div class="auto-images">
+          @if (auto()!.imagenes && auto()!.imagenes!.length > 0) {
+            <div class="main-image">
+              <img [src]="auto()!.imagenes![0]" [alt]="auto()!.marca + ' ' + auto()!.modelo" />
+            </div>
+            @if (auto()!.imagenes!.length > 1) {
+              <div class="thumbnail-images">
+                @for (img of auto()!.imagenes!.slice(1); track $index) {
+                  <img [src]="img" [alt]="auto()!.marca + ' ' + auto()!.modelo" />
+                }
+              </div>
+            }
+          } @else {
+            <div class="no-image">Sin imágenes disponibles</div>
+          }
+        </div>
+
+        <div class="auto-info">
+          <div class="auto-title">
+            <h1>{{ auto()!.marca }} {{ auto()!.modelo }}</h1>
+            <button 
+              type="button"
+              class="favorito-btn"
+              [class.active]="esFavorito()"
+              (click)="toggleFavorito()"
+            >
+              <svg fill="currentColor" viewBox="0 0 24 24">
+                <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+              </svg>
+            </button>
+          </div>
+          
+          <div class="auto-price">
+            <strong>${{ auto()!.precio | number }}</strong>
+          </div>
+
+          <div class="auto-specs">
+            <div class="spec-item">
+              <span class="spec-label">Año:</span>
+              <span class="spec-value">{{ auto()!['año'] }}</span>
+            </div>
+            <div class="spec-item">
+              <span class="spec-label">Kilometraje:</span>
+              <span class="spec-value">{{ auto()!.kilometraje | number }} km</span>
+            </div>
+            <div class="spec-item">
+              <span class="spec-label">Combustible:</span>
+              <span class="spec-value">{{ auto()!.combustible }}</span>
+            </div>
+            <div class="spec-item">
+              <span class="spec-label">Transmisión:</span>
+              <span class="spec-value">{{ auto()!.transmision }}</span>
+            </div>
+            <div class="spec-item">
+              <span class="spec-label">Color:</span>
+              <span class="spec-value">{{ auto()!.color }}</span>
+            </div>
+            @if (auto()!.concesionariaNombre) {
+              <div class="spec-item">
+                <span class="spec-label">Concesionaria:</span>
+                <span class="spec-value">{{ auto()!.concesionariaNombre }}</span>
+              </div>
+            }
+          </div>
+
+          <div class="auto-description">
+            <h3>Descripción</h3>
+            <p>{{ auto()!.descripcion || 'Sin descripción disponible.' }}</p>
+          </div>
+
+          <div class="auto-actions">
+            <button 
+              type="button" 
+              class="btn-primary"
+              (click)="mostrarFormCompra.set(true)"
+            >
+              Registrar Compra
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Sección de Reseña (solo si está en favoritos) -->
+      @if (esFavorito()) {
+        <div class="resena-section">
+          <h2>Mi Reseña</h2>
+          
+          @if (resena() && !mostrarFormResena()) {
+            <div class="resena-display">
+              <div class="resena-puntaje">
+                <span>Puntaje: </span>
+                <strong>{{ resena()!.puntaje }}/10</strong>
+              </div>
+              @if (resena()!.comentario) {
+                <div class="resena-comentario">
+                  <p>{{ resena()!.comentario }}</p>
+                </div>
+              }
+              <div class="resena-actions">
+                <button type="button" class="btn-secondary" (click)="mostrarFormResena.set(true)">
+                  Editar
+                </button>
+                <button type="button" class="btn-danger" (click)="eliminarResena()">
+                  Eliminar
+                </button>
+              </div>
+            </div>
+          } @else {
+            <div class="resena-form">
+              <div class="form-group">
+                <label>Puntaje (0-10)</label>
+                <input 
+                  type="number" 
+                  [(ngModel)]="resenaForm.puntaje"
+                  min="0"
+                  max="10"
+                  class="form-input"
+                />
+              </div>
+              <div class="form-group">
+                <label>Comentario / Observación</label>
+                <textarea 
+                  [(ngModel)]="resenaForm.comentario"
+                  rows="4"
+                  class="form-textarea"
+                  placeholder="Escribe tu comentario u observación sobre este auto..."
+                ></textarea>
+              </div>
+              <div class="form-actions">
+                <button type="button" class="btn-secondary" (click)="mostrarFormResena.set(false)">
+                  Cancelar
+                </button>
+                <button type="button" class="btn-primary" (click)="guardarResena()">
+                  {{ resena() ? 'Actualizar' : 'Guardar' }} Reseña
+                </button>
+              </div>
+            </div>
+          }
+        </div>
+      }
+    </div>
+
+    <!-- Modal de Compra -->
+    @if (mostrarFormCompra()) {
+      <div class="modal-overlay" (click)="mostrarFormCompra.set(false)">
+        <div class="modal-content" (click)="$event.stopPropagation()">
+          <h2>Registrar Compra</h2>
+          <div class="form-group">
+            <label>Precio de compra</label>
+            <input 
+              type="number" 
+              [(ngModel)]="compraForm.precio"
+              min="0"
+              class="form-input"
+            />
+            <small>Precio actual del auto: ${{ auto()!.precio | number }}</small>
+          </div>
+          <div class="form-actions">
+            <button type="button" class="btn-secondary" (click)="mostrarFormCompra.set(false)">
+              Cancelar
+            </button>
+            <button type="button" class="btn-primary" (click)="registrarCompra()">
+              Confirmar Compra
+            </button>
+          </div>
+        </div>
+      </div>
+    }
+  } @else {
+    <div class="error-state">
+      <p>No se pudo cargar el auto solicitado.</p>
+      <button type="button" class="btn-primary" (click)="volver()">
+        Volver a búsqueda
+      </button>
+    </div>
+  }
+</div>
+

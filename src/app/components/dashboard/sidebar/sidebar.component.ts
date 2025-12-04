@@ -52,5 +52,14 @@ export class SidebarComponent implements OnInit {
       }))
     );
   }
+
+  cerrarSesion(): void {
+    // Limpiar datos de autenticación
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    
+    // Redirigir al login
+    this.router.navigate(['/login']);
+  }
 }
 
