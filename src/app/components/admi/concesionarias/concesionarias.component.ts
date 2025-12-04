@@ -4,7 +4,7 @@ import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } 
 import { Router, RouterModule } from '@angular/router';
 import { AdminConcesionariaService } from '../../../services/admin-concesionaria.service';
 import { AdminUsuarioService } from '../../../services/admin-usuario.service';
-import { ConcesionariaAdmin, ConcesionariaAdminCreate, ConcesionariaAdminUpdate, ConcesionariaAdminFiltros, ConcesionariaAdminResponse } from '../../../models/concesionaria-admin.model';
+import { ConcesionariaAdmin, ConcesionariaAdminCreate, ConcesionariaAdminUpdate } from '../../../models/concesionaria-admin.model';
 import { UsuarioAdmin } from '../../../models/usuario-admin.model';
 import { TipoUsuario } from '../../../models/auth.model';
 
@@ -42,10 +42,10 @@ export class ConcesionariasComponent implements OnInit {
   concesionariaForm: FormGroup;
 
   constructor(
-    private fb: FormBuilder,
-    private adminConcesionariaService: AdminConcesionariaService,
-    private adminUsuarioService: AdminUsuarioService,
-    private router: Router
+    private readonly fb: FormBuilder,
+    private readonly adminConcesionariaService: AdminConcesionariaService,
+    private readonly adminUsuarioService: AdminUsuarioService,
+    private readonly router: Router
   ) {
     this.filtrosForm = this.fb.group({
       activa: [null],
@@ -115,9 +115,9 @@ export class ConcesionariasComponent implements OnInit {
       const palabraClave = filtros.palabraClave.toLowerCase();
       filtradas = filtradas.filter(c => 
         c.nombre.toLowerCase().includes(palabraClave) ||
-        (c.direccion && c.direccion.toLowerCase().includes(palabraClave)) ||
-        (c.cuit && c.cuit.toLowerCase().includes(palabraClave)) ||
-        (c.email && c.email.toLowerCase().includes(palabraClave))
+        c.direccion?.toLowerCase().includes(palabraClave) ||
+        c.cuit?.toLowerCase().includes(palabraClave) ||
+        c.email?.toLowerCase().includes(palabraClave)
       );
     }
 
@@ -127,24 +127,30 @@ export class ConcesionariasComponent implements OnInit {
         let aValue: any;
         let bValue: any;
 
-        switch (filtros.sortBy) {
-          case 'nombre':
-            aValue = a.nombre.toLowerCase();
-            bValue = b.nombre.toLowerCase();
-            break;
-          case 'fechaAlta':
-            aValue = new Date(a.fechaAlta).getTime();
-            bValue = new Date(b.fechaAlta).getTime();
-            break;
-          default:
-            aValue = a.nombre.toLowerCase();
-            bValue = b.nombre.toLowerCase();
+        if (filtros.sortBy === 'fechaAlta') {
+          aValue = new Date(a.fechaAlta).getTime();
+          bValue = new Date(b.fechaAlta).getTime();
+        } else {
+          aValue = a.nombre.toLowerCase();
+          bValue = b.nombre.toLowerCase();
         }
 
         if (filtros.sortOrder === 'DESC') {
-          return aValue > bValue ? -1 : aValue < bValue ? 1 : 0;
+          if (aValue > bValue) {
+            return -1;
+          }
+          if (aValue < bValue) {
+            return 1;
+          }
+          return 0;
         } else {
-          return aValue < bValue ? -1 : aValue > bValue ? 1 : 0;
+          if (aValue < bValue) {
+            return -1;
+          }
+          if (aValue > bValue) {
+            return 1;
+          }
+          return 0;
         }
       });
     }
@@ -410,14 +416,14 @@ export class ConcesionariasComponent implements OnInit {
     // Si el backend tiene endpoint de exportación, se debería usar ese.
     this.adminConcesionariaService.exportarConcesionarias(formato, {}).subscribe({
       next: (blob) => {
-        const url = window.URL.createObjectURL(blob);
+        const url = globalThis.URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
         a.download = `concesionarias.${formato === 'excel' ? 'xlsx' : 'pdf'}`;
         document.body.appendChild(a);
         a.click();
-        window.URL.revokeObjectURL(url);
-        document.body.removeChild(a);
+        globalThis.URL.revokeObjectURL(url);
+        a.remove();
         this.isLoading.set(false);
         alert(`Concesionarias exportadas exitosamente en formato ${formato.toUpperCase()}`);
       },

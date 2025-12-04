@@ -160,4 +160,6 @@ Cypress.Commands.add('setupBackendMocks', () => {
   }).as('mockApi');
 });
 
-export {};
+// Export para marcar este archivo como módulo ES6 (necesario para 'declare global')
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type
+export const __cypressCommandsModule = true;
