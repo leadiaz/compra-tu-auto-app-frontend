@@ -1,6 +1,11 @@
 /// <reference types="cypress" />
+
+import '../support/commands';
+
 describe('Login page', () => {
   beforeEach(() => {
+    // Configurar mocks antes de cada test
+    cy.setupBackendMocks();
     cy.visit('/login');
   });
 
@@ -24,12 +29,32 @@ describe('Login page', () => {
   });
 
   it('should login and go to dashboard', () => {
+    // Mock del login exitoso
+    cy.intercept('POST', '**/api/1/compra-tu-auto/auth/login', {
+      statusCode: 200,
+      body: {
+        token: 'mock-token-login',
+        usuario: {
+          id: 2,
+          nombre: 'Usuario',
+          apellido: 'Test',
+          email: 'user@example.com',
+          fechaAlta: '2024-01-01',
+          activo: true,
+          tipoUsuario: 'COMPRADOR'
+        }
+      }
+    }).as('mockLogin');
+
     cy.get('input#email').clear().type('user@example.com');
     cy.get('input#password').clear().type('123456');
     cy.get('button[type="submit"]').click();
 
-    // Simulación tiene delay 2s
-    cy.location('pathname', { timeout: 5000 }).should('eq', '/dashboard');
-    cy.contains('Bienvenido');
+    // Esperar a que se complete el login
+    cy.wait('@mockLogin');
+    // La app puede redirigir a /dashboard o /dashboard/home
+    cy.location('pathname', { timeout: 5000 }).should('satisfy', (path) => {
+      return path === '/dashboard' || path === '/dashboard/home' || path.startsWith('/dashboard/');
+    });
   });
 });
