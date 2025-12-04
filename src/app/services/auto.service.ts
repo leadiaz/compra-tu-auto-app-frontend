@@ -10,6 +10,13 @@ import { Auto, FiltrosBusqueda, BusquedaResponse } from '../models/auto.model';
 export class AutoService {
   constructor(private apiService: ApiService) {}
 
+  private getHeaders(): HttpHeaders {
+    const token = localStorage.getItem('token');
+    return new HttpHeaders({
+      'Authorization': `Bearer ${token}`
+    });
+  }
+
   /**
    * Lista todos los autos disponibles
    */
@@ -88,17 +95,27 @@ export class AutoService {
 
   /**
    * Obtiene las marcas disponibles
+   * GET /autos/marcas
+   * Requiere autenticación: COMPRADOR, CONCESIONARIA o ADMIN
    */
   obtenerMarcas(): Observable<string[]> {
-    return this.apiService.get<string[]>('/autos/marcas');
+    return this.apiService.get<string[]>('/autos/marcas', {
+      headers: this.getHeaders()
+    });
   }
 
   /**
-   * Obtiene los modelos disponibles para una marca
+   * Obtiene los modelos disponibles para una marca específica
+   * GET /autos/modelos?marca={marca}
+   * Requiere autenticación: COMPRADOR, CONCESIONARIA o ADMIN
+   * @param marca Nombre de la marca (case-insensitive)
    */
   obtenerModelosPorMarca(marca: string): Observable<string[]> {
     const params = new HttpParams().set('marca', marca);
-    return this.apiService.get<string[]>('/autos/modelos', { params });
+    return this.apiService.get<string[]>('/autos/modelos', { 
+      headers: this.getHeaders(),
+      params 
+    });
   }
 }
 

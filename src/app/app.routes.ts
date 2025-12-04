@@ -82,6 +82,11 @@ export const routes: Routes = [
         canActivate: [concesionariaGuard]
       },
       {
+        path: 'mis-ofertas',
+        loadComponent: () => import('./components/concesionaria/mis-ofertas/mis-ofertas.component').then(m => m.MisOfertasComponent),
+        canActivate: [concesionariaGuard]
+      },
+      {
         path: 'perfil-concesionaria',
         loadComponent: () => import('./components/concesionaria/perfil/perfil.component').then(m => m.PerfilConcesionariaComponent),
         canActivate: [concesionariaGuard]

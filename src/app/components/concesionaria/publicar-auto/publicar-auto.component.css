@@ -206,5 +206,36 @@
   background-color: #d1d5db;
 }
 
+.search-input {
+  margin-bottom: 0.75rem;
+}
 
+.autos-select {
+  min-height: 150px;
+  max-height: 300px;
+  overflow-y: auto;
+}
 
+.autos-select option {
+  padding: 0.5rem;
+}
+
+.auto-seleccionado-info {
+  margin-top: 0.75rem;
+  padding: 0.75rem;
+  background-color: #dbeafe;
+  border-radius: 0.5rem;
+  border-left: 3px solid #3b82f6;
+}
+
+.auto-seleccionado-info p {
+  margin: 0;
+  color: #1e40af;
+  font-size: 0.875rem;
+}
+
+.form-group small {
+  font-size: 0.75rem;
+  color: #6b7280;
+  margin-top: 0.25rem;
+}
