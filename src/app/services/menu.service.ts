@@ -1,7 +1,5 @@
 import { Injectable } from '@angular/core';
-import { Observable, of, delay, catchError } from 'rxjs';
-import { HttpHeaders } from '@angular/common/http';
-import { ApiService } from './api.service';
+import { Observable, of, delay } from 'rxjs';
 import { MenuItem, MenuResponse } from '../models/menu.model';
 import { TipoUsuario } from '../models/auth.model';
 
@@ -166,7 +164,7 @@ export class MenuService {
     ]
   };
 
-  constructor(private apiService: ApiService) {}
+  constructor() {}
 
   /**
    * Obtiene el menú del usuario según su tipo
@@ -214,38 +212,7 @@ export class MenuService {
         console.error('Error al parsear usuario desde localStorage:', error);
       }
     }
-
-    // Fallback: usar menú de comprador por defecto
-    console.log('[MOCK] Usando menú por defecto (COMPRADOR)');
     return this.getMenuByUserType(TipoUsuario.COMPRADOR);
-
-    // CÓDIGO ORIGINAL (comentado para referencia):
-    // Si en el futuro se quiere usar el backend real, descomentar esto:
-    /*
-    // Configurar headers con el token de autorización
-    const headers = new HttpHeaders({
-      'Authorization': `Bearer ${token}`
-    });
-
-    // Realizar petición GET al backend
-    return this.apiService.get<MenuResponse>('/usuarios/mi-menu', { headers }).pipe(
-      catchError((error) => {
-        console.error('Error al obtener el menú del backend:', error);
-        // En caso de error, usar menú por defecto basado en el tipo de usuario
-        const userStr = localStorage.getItem('user');
-        if (userStr) {
-          try {
-            const user = JSON.parse(userStr);
-            const tipoUsuario = user.tipoUsuario as TipoUsuario;
-            return this.getMenuByUserType(tipoUsuario);
-          } catch {
-            return this.getMenuByUserType(TipoUsuario.COMPRADOR);
-          }
-        }
-        return this.getMenuByUserType(TipoUsuario.COMPRADOR);
-      })
-    );
-    */
   }
 }
 
