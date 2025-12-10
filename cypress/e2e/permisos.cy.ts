@@ -54,7 +54,7 @@ describe('Sistema de Permisos y Seguridad', () => {
     });
 
     it('debe bloquear todas las rutas de administrador', () => {
-      const rutasBloqueadas = [
+      cy.verifyMultipleRoutesBlocked('COMPRADOR', [
         '/dashboard/usuarios',
         '/dashboard/concesionarias',
         '/dashboard/gestion-autos',
@@ -62,26 +62,18 @@ describe('Sistema de Permisos y Seguridad', () => {
         '/dashboard/compras-admin',
         '/dashboard/reportes',
         '/dashboard/perfil-admin'
-      ];
-
-      rutasBloqueadas.forEach(ruta => {
-        cy.verifyUrlBlocked(ruta);
-      });
+      ]);
     });
 
     it('debe bloquear todas las rutas de concesionaria', () => {
-      const rutasBloqueadas = [
+      cy.verifyMultipleRoutesBlocked('COMPRADOR', [
         '/dashboard/mis-autos',
         '/dashboard/publicar-auto',
         '/dashboard/ventas',
         '/dashboard/estadisticas',
         '/dashboard/mis-ofertas',
         '/dashboard/perfil-concesionaria'
-      ];
-
-      rutasBloqueadas.forEach(ruta => {
-        cy.verifyUrlBlocked(ruta);
-      });
+      ]);
     });
   });
 
@@ -106,17 +98,13 @@ describe('Sistema de Permisos y Seguridad', () => {
     });
 
     it('debe bloquear todas las rutas de comprador', () => {
-      const rutasBloqueadas = [
+      cy.verifyMultipleRoutesBlocked('CONCESIONARIO', [
         '/dashboard/ofertas',
         '/dashboard/favoritos',
         '/dashboard/mis-compras',
         '/dashboard/mis-resenas',
         '/dashboard/perfil'
-      ];
-
-      rutasBloqueadas.forEach(ruta => {
-        cy.verifyUrlBlocked(ruta);
-      });
+      ]);
     });
   });
 
@@ -142,15 +130,11 @@ describe('Sistema de Permisos y Seguridad', () => {
     });
 
     it('debe bloquear rutas de otros roles', () => {
-      const rutasBloqueadas = [
+      cy.verifyMultipleRoutesBlocked('ADMIN', [
         '/dashboard/ofertas',
         '/dashboard/mis-autos',
         '/dashboard/favoritos'
-      ];
-
-      rutasBloqueadas.forEach(ruta => {
-        cy.verifyUrlBlocked(ruta);
-      });
+      ]);
     });
   });
 
@@ -192,13 +176,14 @@ describe('Sistema de Permisos y Seguridad', () => {
 
   describe('Manejo de usuarios no autorizados', () => {
     it('debe manejar correctamente cuando un usuario intenta acceder a rutas de otro rol múltiples veces', () => {
-      cy.loginAs('COMPRADOR');
-      
       // Intentar acceder varias veces a rutas no permitidas
-      cy.verifyUrlBlocked('/dashboard/usuarios');
-      cy.verifyUrlBlocked('/dashboard/concesionarias');
+      cy.verifyMultipleRoutesBlocked('COMPRADOR', [
+        '/dashboard/usuarios',
+        '/dashboard/concesionarias'
+      ]);
       
       // Verificar que aún puede acceder a sus rutas permitidas
+      cy.loginAs('COMPRADOR');
       cy.verifyRouteAllowed('/dashboard/ofertas');
     });
   });

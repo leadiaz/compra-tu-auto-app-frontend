@@ -118,6 +118,14 @@ declare global {
        * @param expectedType - Tipo esperado ('password' o 'text')
        */
       verifyPasswordFieldType(fieldId: 'password' | 'confirmPassword', expectedType: 'password' | 'text'): Chainable<void>;
+      
+      /**
+       * Verifica que múltiples rutas están bloqueadas para un rol específico
+       * Hace login con el rol especificado y verifica que todas las rutas están bloqueadas
+       * @param rol - Rol del usuario ('ADMIN', 'COMPRADOR' o 'CONCESIONARIO')
+       * @param rutasBloqueadas - Array de rutas que deben estar bloqueadas
+       */
+      verifyMultipleRoutesBlocked(rol: 'ADMIN' | 'COMPRADOR' | 'CONCESIONARIO', rutasBloqueadas: string[]): Chainable<void>;
     }
   }
 }
@@ -346,6 +354,13 @@ Cypress.Commands.add('togglePasswordVisibility', (fieldId: 'password' | 'confirm
 
 Cypress.Commands.add('verifyPasswordFieldType', (fieldId: 'password' | 'confirmPassword', expectedType: 'password' | 'text') => {
   cy.get(`input#${fieldId}`).should('have.attr', 'type', expectedType);
+});
+
+Cypress.Commands.add('verifyMultipleRoutesBlocked', (rol: 'ADMIN' | 'COMPRADOR' | 'CONCESIONARIO', rutasBloqueadas: string[]) => {
+  cy.loginAs(rol);
+  rutasBloqueadas.forEach((ruta) => {
+    cy.verifyUrlBlocked(ruta);
+  });
 });
 
 // Export para marcar este archivo como módulo ES6 (necesario para 'declare global')

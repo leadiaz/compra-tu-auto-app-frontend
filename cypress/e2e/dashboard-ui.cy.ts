@@ -7,33 +7,35 @@ describe('Dashboard - UI y Componentes', () => {
     cy.setupBackendMocks();
   });
 
-  describe('Componentes visuales del dashboard', () => {
-    it('debe mostrar el sidebar correctamente', () => {
+  describe('Renderizado básico del dashboard', () => {
+    beforeEach(() => {
       cy.loginAs('COMPRADOR');
       cy.visit('/dashboard');
-      
-      cy.contains('Cargando menú...', { timeout: 1000 }).should('not.exist');
-      
-      // Verificar sidebar
+      cy.waitForMenuLoad();
+    });
+
+    it('debe mostrar la página principal del dashboard', () => {
+      cy.url().should('include', '/dashboard');
+      cy.contains('Compra Tu Auto').should('be.visible');
+    });
+
+    it('debe mostrar el sidebar correctamente', () => {
       cy.contains('Compra Tu Auto').should('be.visible');
       cy.get('.sidebar').should('be.visible');
+      cy.verifyMenuItemVisible(['Dashboard', 'Buscar Autos']);
     });
 
     it('debe mostrar el navbar correctamente', () => {
-      cy.loginAs('COMPRADOR');
-      cy.visit('/dashboard');
-      
-      cy.contains('Cargando menú...', { timeout: 1000 }).should('not.exist');
-      
-      // El navbar debería estar presente (ajustar selector según tu implementación)
       cy.get('.dashboard-container').should('be.visible');
     });
 
-    it('debe tener el contenido principal visible', () => {
-      cy.loginAs('COMPRADOR');
-      cy.visit('/dashboard');
-      
-      cy.contains('Cargando menú...', { timeout: 1000 }).should('not.exist');
+    it('debe mostrar el contenido principal del dashboard', () => {
+      cy.get('main.dashboard-content').should('be.visible');
+    });
+
+    it('debe mostrar el contenido del dashboard home', () => {
+      cy.visit('/dashboard/home');
+      cy.waitForMenuLoad();
       cy.get('main.dashboard-content').should('be.visible');
     });
   });
@@ -42,12 +44,11 @@ describe('Dashboard - UI y Componentes', () => {
     beforeEach(() => {
       cy.loginAs('COMPRADOR');
       cy.visit('/dashboard');
-      cy.contains('Cargando menú...', { timeout: 1000 }).should('not.exist');
+      cy.waitForMenuLoad();
     });
 
     it('debe resaltar el item activo en el menú', () => {
-      cy.contains('Buscar Autos').click();
-      cy.url().should('include', '/dashboard/ofertas');
+      cy.navigateToMenuItem('Buscar Autos', '/dashboard/ofertas');
       cy.wait(500);
       
       // Verificar que el item está activo (puede que la clase active se aplique de diferentes maneras)
@@ -56,7 +57,7 @@ describe('Dashboard - UI y Componentes', () => {
     });
 
     it('debe mantener el sidebar visible al navegar', () => {
-      cy.contains('Buscar Autos').click();
+      cy.navigateToMenuItem('Buscar Autos', '/dashboard/ofertas');
       cy.contains('Compra Tu Auto').should('be.visible');
       cy.contains('Mis Favoritos').should('be.visible');
     });
@@ -66,7 +67,7 @@ describe('Dashboard - UI y Componentes', () => {
     it('debe navegar correctamente entre todas las secciones de comprador', () => {
       cy.loginAs('COMPRADOR');
       cy.visit('/dashboard');
-      cy.contains('Cargando menú...', { timeout: 1000 }).should('not.exist');
+      cy.waitForMenuLoad();
 
       const secciones = [
         { nombre: 'Dashboard', ruta: '/dashboard/home' },
@@ -78,8 +79,7 @@ describe('Dashboard - UI y Componentes', () => {
       ];
 
       secciones.forEach(seccion => {
-        cy.contains(seccion.nombre).click();
-        cy.url().should('include', seccion.ruta);
+        cy.navigateToMenuItem(seccion.nombre, seccion.ruta);
         cy.wait(500);
       });
     });
@@ -87,7 +87,7 @@ describe('Dashboard - UI y Componentes', () => {
     it('debe navegar correctamente entre todas las secciones de administrador', () => {
       cy.loginAs('ADMIN');
       cy.visit('/dashboard');
-      cy.contains('Cargando menú...', { timeout: 1000 }).should('not.exist');
+      cy.waitForMenuLoad();
 
       const secciones = [
         { nombre: 'Dashboard', ruta: '/dashboard/home' },
@@ -100,8 +100,7 @@ describe('Dashboard - UI y Componentes', () => {
       ];
 
       secciones.forEach(seccion => {
-        cy.contains(seccion.nombre).click();
-        cy.url().should('include', seccion.ruta);
+        cy.navigateToMenuItem(seccion.nombre, seccion.ruta);
         cy.wait(500);
       });
     });
@@ -119,19 +118,20 @@ describe('Dashboard - UI y Componentes', () => {
     it('debe ocultar el indicador de carga una vez cargado', () => {
       cy.loginAs('COMPRADOR');
       cy.visit('/dashboard');
+      cy.waitForMenuLoad();
       
-      // Esperar a que el menú cargue
-      cy.contains('Cargando menú...', { timeout: 1000 }).should('not.exist');
       cy.get('.menu-list').should('be.visible');
     });
   });
 
   describe('Responsive y accesibilidad', () => {
-    it('debe ser accesible con teclado', () => {
+    beforeEach(() => {
       cy.loginAs('COMPRADOR');
       cy.visit('/dashboard');
-      cy.contains('Cargando menú...', { timeout: 1000 }).should('not.exist');
+      cy.waitForMenuLoad();
+    });
 
+    it('debe ser accesible con teclado', () => {
       // Verificar que los elementos son focables
       cy.get('a.menu-link').first().should('exist').focus();
       cy.focused().should('exist');
@@ -143,10 +143,6 @@ describe('Dashboard - UI y Componentes', () => {
     });
 
     it('debe tener atributos ARIA apropiados', () => {
-      cy.loginAs('COMPRADOR');
-      cy.visit('/dashboard');
-      cy.contains('Cargando menú...', { timeout: 1000 }).should('not.exist');
-
       // Verificar que los botones tienen aria-labels
       cy.get('button[aria-label*="contraseña"]').should('exist');
     });

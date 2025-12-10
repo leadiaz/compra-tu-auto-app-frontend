@@ -204,53 +204,50 @@ describe('Menús de navegación por rol de usuario', () => {
     });
 
     it('debe bloquear acceso de comprador a rutas de administrador', () => {
-      cy.loginAs('COMPRADOR');
-      
-      // Intentar acceder a rutas de administrador - deben redirigir al dashboard
-      cy.verifyUrlBlocked('/dashboard/usuarios');
-      cy.verifyUrlBlocked('/dashboard/concesionarias');
-      cy.verifyUrlBlocked('/dashboard/reportes');
+      cy.verifyMultipleRoutesBlocked('COMPRADOR', [
+        '/dashboard/usuarios',
+        '/dashboard/concesionarias',
+        '/dashboard/reportes'
+      ]);
     });
 
     it('debe bloquear acceso de comprador a rutas de concesionaria', () => {
-      cy.loginAs('COMPRADOR');
-      
-      // Intentar acceder a rutas de concesionaria - deben redirigir al dashboard
-      cy.verifyUrlBlocked('/dashboard/mis-autos');
-      cy.verifyUrlBlocked('/dashboard/publicar-auto');
-      cy.verifyUrlBlocked('/dashboard/ventas');
+      cy.verifyMultipleRoutesBlocked('COMPRADOR', [
+        '/dashboard/mis-autos',
+        '/dashboard/publicar-auto',
+        '/dashboard/ventas'
+      ]);
     });
 
     it('debe bloquear acceso de concesionaria a rutas de comprador', () => {
-      cy.loginAs('CONCESIONARIO');
-      
-      // Intentar acceder a rutas de comprador - deben redirigir al dashboard
-      cy.verifyUrlBlocked('/dashboard/ofertas');
-      cy.verifyUrlBlocked('/dashboard/favoritos');
-      cy.verifyUrlBlocked('/dashboard/mis-compras');
+      cy.verifyMultipleRoutesBlocked('CONCESIONARIO', [
+        '/dashboard/ofertas',
+        '/dashboard/favoritos',
+        '/dashboard/mis-compras'
+      ]);
     });
 
     it('debe bloquear acceso de concesionaria a rutas de administrador', () => {
-      cy.loginAs('CONCESIONARIO');
-      
-      // Intentar acceder a rutas de administrador - deben redirigir al dashboard
-      cy.verifyUrlBlocked('/dashboard/usuarios');
-      cy.verifyUrlBlocked('/dashboard/concesionarias');
-      cy.verifyUrlBlocked('/dashboard/reportes');
+      cy.verifyMultipleRoutesBlocked('CONCESIONARIO', [
+        '/dashboard/usuarios',
+        '/dashboard/concesionarias',
+        '/dashboard/reportes'
+      ]);
     });
 
     it('debe permitir acceso de administrador a todas las rutas de admin', () => {
       cy.loginAs('ADMIN');
       
       // Verificar acceso a rutas de administrador
-      cy.visit('/dashboard/usuarios');
-      cy.url().should('include', '/dashboard/usuarios');
+      const rutasPermitidas = [
+        '/dashboard/usuarios',
+        '/dashboard/concesionarias',
+        '/dashboard/reportes'
+      ];
       
-      cy.visit('/dashboard/concesionarias');
-      cy.url().should('include', '/dashboard/concesionarias');
-      
-      cy.visit('/dashboard/reportes');
-      cy.url().should('include', '/dashboard/reportes');
+      rutasPermitidas.forEach(ruta => {
+        cy.verifyRouteAllowed(ruta);
+      });
     });
   });
 });
