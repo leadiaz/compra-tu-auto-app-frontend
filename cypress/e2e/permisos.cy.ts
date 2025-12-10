@@ -10,7 +10,7 @@ describe('Sistema de Permisos y Seguridad', () => {
   describe('Protección de rutas autenticadas', () => {
     it('debe redirigir a login si se accede a dashboard sin autenticación', () => {
       cy.visit('/dashboard/usuarios');
-      cy.url().should('include', '/login');
+      cy.verifyRedirectToLogin();
     });
 
     it('debe redirigir a login si se accede a cualquier ruta protegida sin autenticación', () => {
@@ -23,13 +23,13 @@ describe('Sistema de Permisos y Seguridad', () => {
 
       rutasProtegidas.forEach(ruta => {
         cy.visit(ruta);
-        cy.url().should('include', '/login');
+        cy.verifyRedirectToLogin();
       });
     });
 
     it('debe preservar la URL de destino en el query parameter', () => {
       cy.visit('/dashboard/usuarios');
-      cy.url().should('include', '/login');
+      cy.verifyRedirectToLogin();
       cy.url().should('include', 'returnUrl');
     });
   });
@@ -49,9 +49,7 @@ describe('Sistema de Permisos y Seguridad', () => {
       ];
 
       rutasPermitidas.forEach(ruta => {
-        cy.visit(ruta);
-        cy.url().should('include', ruta);
-        cy.wait(500);
+        cy.verifyRouteAllowed(ruta);
       });
     });
 
@@ -67,10 +65,7 @@ describe('Sistema de Permisos y Seguridad', () => {
       ];
 
       rutasBloqueadas.forEach(ruta => {
-        cy.visit(ruta);
-        cy.url().should('satisfy', (url) => {
-          return url.includes('/dashboard') && !url.includes(ruta);
-        });
+        cy.verifyUrlBlocked(ruta);
       });
     });
 
@@ -85,11 +80,7 @@ describe('Sistema de Permisos y Seguridad', () => {
       ];
 
       rutasBloqueadas.forEach(ruta => {
-        cy.visit(ruta);
-        // Verificar que NO está en la ruta bloqueada
-        cy.url().should('not.include', ruta);
-        // Verificar que está en el dashboard (redirigido)
-        cy.url().should('include', '/dashboard');
+        cy.verifyUrlBlocked(ruta);
       });
     });
   });
@@ -110,9 +101,7 @@ describe('Sistema de Permisos y Seguridad', () => {
       ];
 
       rutasPermitidas.forEach(ruta => {
-        cy.visit(ruta);
-        cy.url().should('include', ruta);
-        cy.wait(500);
+        cy.verifyRouteAllowed(ruta);
       });
     });
 
@@ -126,10 +115,7 @@ describe('Sistema de Permisos y Seguridad', () => {
       ];
 
       rutasBloqueadas.forEach(ruta => {
-        cy.visit(ruta);
-        cy.url().should('satisfy', (url) => {
-          return url.includes('/dashboard') && !url.includes(ruta.split('/').pop() || '');
-        });
+        cy.verifyUrlBlocked(ruta);
       });
     });
   });
@@ -151,9 +137,7 @@ describe('Sistema de Permisos y Seguridad', () => {
       ];
 
       rutasPermitidas.forEach(ruta => {
-        cy.visit(ruta);
-        cy.url().should('include', ruta);
-        cy.wait(500);
+        cy.verifyRouteAllowed(ruta);
       });
     });
 
@@ -165,10 +149,7 @@ describe('Sistema de Permisos y Seguridad', () => {
       ];
 
       rutasBloqueadas.forEach(ruta => {
-        cy.visit(ruta);
-        cy.url().should('satisfy', (url) => {
-          return url.includes('/dashboard') && !url.includes(ruta.split('/').pop() || '');
-        });
+        cy.verifyUrlBlocked(ruta);
       });
     });
   });
@@ -177,26 +158,21 @@ describe('Sistema de Permisos y Seguridad', () => {
     it('debe mantener la sesión al recargar la página', () => {
       cy.loginAs('COMPRADOR');
       cy.visit('/dashboard');
-      cy.contains('Cargando menú...', { timeout: 1000 }).should('not.exist');
+      cy.waitForMenuLoad();
       
       cy.reload();
-      cy.contains('Cargando menú...', { timeout: 1000 }).should('not.exist');
+      cy.waitForMenuLoad();
       cy.contains('Buscar Autos').should('be.visible');
     });
 
     it('debe cerrar sesión correctamente y limpiar localStorage', () => {
       cy.loginAs('COMPRADOR');
       cy.visit('/dashboard');
-      cy.contains('Cargando menú...', { timeout: 1000 }).should('not.exist');
+      cy.waitForMenuLoad();
       
       cy.contains('Cerrar Sesión').click();
-      cy.url().should('include', '/login');
-      
-      // Verificar que localStorage esté limpio
-      cy.window().then((win) => {
-        expect(win.localStorage.getItem('token')).to.be.null;
-        expect(win.localStorage.getItem('user')).to.be.null;
-      });
+      cy.verifyRedirectToLogin();
+      cy.verifyLocalStorageCleaned();
     });
 
     it('debe redirigir a login si el token expira', () => {
@@ -210,7 +186,7 @@ describe('Sistema de Permisos y Seguridad', () => {
       
       // Intentar acceder a una ruta protegida
       cy.visit('/dashboard/ofertas');
-      cy.url().should('include', '/login');
+      cy.verifyRedirectToLogin();
     });
   });
 
@@ -219,15 +195,11 @@ describe('Sistema de Permisos y Seguridad', () => {
       cy.loginAs('COMPRADOR');
       
       // Intentar acceder varias veces a rutas no permitidas
-      cy.visit('/dashboard/usuarios');
-      cy.url().should('not.include', '/dashboard/usuarios');
-      
-      cy.visit('/dashboard/concesionarias');
-      cy.url().should('not.include', '/dashboard/concesionarias');
+      cy.verifyUrlBlocked('/dashboard/usuarios');
+      cy.verifyUrlBlocked('/dashboard/concesionarias');
       
       // Verificar que aún puede acceder a sus rutas permitidas
-      cy.visit('/dashboard/ofertas');
-      cy.url().should('include', '/dashboard/ofertas');
+      cy.verifyRouteAllowed('/dashboard/ofertas');
     });
   });
 });

@@ -14,17 +14,12 @@ describe('Registro de Usuario', () => {
       cy.contains('Crea una nueva cuenta').should('be.visible');
       
       // Verificar que todos los campos estén presentes
-      cy.get('input#nombre').should('be.visible');
-      cy.get('input#apellido').should('be.visible');
-      cy.get('input#email').should('be.visible');
-      cy.get('input#password').should('be.visible');
-      cy.get('input#confirmPassword').should('be.visible');
+      cy.verifyRegistrationFormFields();
       
       // Verificar que el selector de tipo de usuario NO esté visible (solo para admin)
       cy.get('select#tipoUsuario').should('not.exist');
       
       // Verificar botón de submit
-      cy.get('button[type="submit"]').should('be.visible');
       cy.contains('Registrarse').should('be.visible');
     });
 
@@ -37,86 +32,93 @@ describe('Registro de Usuario', () => {
 
   describe('Validación de campos', () => {
     it('debe validar que el nombre es requerido', () => {
-      cy.get('button[type="submit"]').click();
-      cy.contains('El nombre es requerido').should('be.visible');
+      cy.submitRegistrationForm();
+      cy.verifyValidationMessage('El nombre es requerido');
     });
 
     it('debe validar que el nombre tiene al menos 2 caracteres', () => {
-      cy.get('input#nombre').type('A');
-      cy.get('button[type="submit"]').click();
-      cy.contains('El nombre debe tener al menos 2 caracteres').should('be.visible');
+      cy.fillRegistrationForm({ nombre: 'A' });
+      cy.submitRegistrationForm();
+      cy.verifyValidationMessage('El nombre debe tener al menos 2 caracteres');
     });
 
     it('debe validar que el apellido es requerido', () => {
-      cy.get('input#nombre').type('Juan');
-      cy.get('button[type="submit"]').click();
-      cy.contains('El apellido es requerido').should('be.visible');
+      cy.fillRegistrationForm({ nombre: 'Juan' });
+      cy.submitRegistrationForm();
+      cy.verifyValidationMessage('El apellido es requerido');
     });
 
     it('debe validar que el apellido tiene al menos 2 caracteres', () => {
-      cy.get('input#nombre').type('Juan');
-      cy.get('input#apellido').type('B');
-      cy.get('button[type="submit"]').click();
-      cy.contains('El apellido debe tener al menos 2 caracteres').should('be.visible');
+      cy.fillRegistrationForm({ nombre: 'Juan', apellido: 'B' });
+      cy.submitRegistrationForm();
+      cy.verifyValidationMessage('El apellido debe tener al menos 2 caracteres');
     });
 
     it('debe validar formato de email', () => {
-      cy.get('input#nombre').type('Juan');
-      cy.get('input#apellido').type('Pérez');
-      cy.get('input#email').type('email-invalido');
-      cy.get('button[type="submit"]').click();
-      cy.contains('El formato del email no es válido').should('be.visible');
+      cy.fillRegistrationForm({
+        nombre: 'Juan',
+        apellido: 'Pérez',
+        email: 'email-invalido'
+      });
+      cy.submitRegistrationForm();
+      cy.verifyValidationMessage('El formato del email no es válido');
     });
 
     it('debe validar que la contraseña es requerida', () => {
-      cy.get('input#nombre').type('Juan');
-      cy.get('input#apellido').type('Pérez');
-      cy.get('input#email').type('juan@example.com');
-      cy.get('button[type="submit"]').click();
-      cy.contains('La contraseña es requerida').should('be.visible');
+      cy.fillRegistrationForm({
+        nombre: 'Juan',
+        apellido: 'Pérez',
+        email: 'juan@example.com'
+      });
+      cy.submitRegistrationForm();
+      cy.verifyValidationMessage('La contraseña es requerida');
     });
 
     it('debe validar que la contraseña tiene al menos 6 caracteres', () => {
-      cy.get('input#nombre').type('Juan');
-      cy.get('input#apellido').type('Pérez');
-      cy.get('input#email').type('juan@example.com');
-      cy.get('input#password').type('12345');
-      cy.get('button[type="submit"]').click();
-      cy.contains('La contraseña debe tener al menos 6 caracteres').should('be.visible');
+      cy.fillRegistrationForm({
+        nombre: 'Juan',
+        apellido: 'Pérez',
+        email: 'juan@example.com',
+        password: '12345'
+      });
+      cy.submitRegistrationForm();
+      cy.verifyValidationMessage('La contraseña debe tener al menos 6 caracteres');
     });
 
     it('debe validar que las contraseñas coinciden', () => {
-      cy.get('input#nombre').type('Juan');
-      cy.get('input#apellido').type('Pérez');
-      cy.get('input#email').type('juan@example.com');
-      cy.get('input#password').type('123456');
-      cy.get('input#confirmPassword').type('123457');
-      cy.get('button[type="submit"]').click();
-      cy.contains('Las contraseñas no coinciden').should('be.visible');
+      cy.fillRegistrationForm({
+        nombre: 'Juan',
+        apellido: 'Pérez',
+        email: 'juan@example.com',
+        password: '123456',
+        confirmPassword: '123457'
+      });
+      cy.submitRegistrationForm();
+      cy.verifyValidationMessage('Las contraseñas no coinciden');
     });
   });
 
   describe('Funcionalidad de mostrar/ocultar contraseña', () => {
     it('debe poder mostrar y ocultar la contraseña', () => {
       cy.get('input#password').type('mipassword123');
-      cy.get('input#password').should('have.attr', 'type', 'password');
+      cy.verifyPasswordFieldType('password', 'password');
       
       // Click en el botón de mostrar contraseña
-      cy.get('input#password').parent().find('button.password-toggle').click();
-      cy.get('input#password').should('have.attr', 'type', 'text');
+      cy.togglePasswordVisibility('password');
+      cy.verifyPasswordFieldType('password', 'text');
       
       // Ocultar nuevamente
-      cy.get('input#password').parent().find('button.password-toggle').click();
-      cy.get('input#password').should('have.attr', 'type', 'password');
+      cy.togglePasswordVisibility('password');
+      cy.verifyPasswordFieldType('password', 'password');
     });
 
     it('debe poder mostrar y ocultar la confirmación de contraseña', () => {
       cy.get('input#confirmPassword').type('mipassword123');
-      cy.get('input#confirmPassword').should('have.attr', 'type', 'password');
+      cy.verifyPasswordFieldType('confirmPassword', 'password');
       
       // Click en el botón de mostrar contraseña
-      cy.get('input#confirmPassword').parent().find('button.password-toggle').click();
-      cy.get('input#confirmPassword').should('have.attr', 'type', 'text');
+      cy.togglePasswordVisibility('confirmPassword');
+      cy.verifyPasswordFieldType('confirmPassword', 'text');
     });
   });
 
@@ -133,13 +135,15 @@ describe('Registro de Usuario', () => {
         }
       }).as('mockRegistro');
 
-      cy.get('input#nombre').type('Nuevo');
-      cy.get('input#apellido').type('Usuario');
-      cy.get('input#email').type('nuevo@example.com');
-      cy.get('input#password').type('123456');
-      cy.get('input#confirmPassword').type('123456');
+      cy.fillRegistrationForm({
+        nombre: 'Nuevo',
+        apellido: 'Usuario',
+        email: 'nuevo@example.com',
+        password: '123456',
+        confirmPassword: '123456'
+      });
       
-      cy.get('button[type="submit"]').click();
+      cy.submitRegistrationForm();
       cy.wait('@mockRegistro');
       
       cy.contains('Usuario registrado exitosamente').should('be.visible');
@@ -158,16 +162,18 @@ describe('Registro de Usuario', () => {
         }
       }).as('mockErrorEmail');
 
-      cy.get('input#nombre').type('Juan');
-      cy.get('input#apellido').type('Pérez');
-      cy.get('input#email').type('existente@example.com');
-      cy.get('input#password').type('123456');
-      cy.get('input#confirmPassword').type('123456');
+      cy.fillRegistrationForm({
+        nombre: 'Juan',
+        apellido: 'Pérez',
+        email: 'existente@example.com',
+        password: '123456',
+        confirmPassword: '123456'
+      });
       
-      cy.get('button[type="submit"]').click();
+      cy.submitRegistrationForm();
       cy.wait('@mockErrorEmail');
       
-      cy.contains('El email ya está registrado').should('be.visible');
+      cy.verifyValidationMessage('El email ya está registrado');
     });
 
     it('debe mostrar error de conexión cuando el servidor no está disponible', () => {
@@ -176,15 +182,17 @@ describe('Registro de Usuario', () => {
         forceNetworkError: true
       }).as('mockErrorConexion');
 
-      cy.get('input#nombre').type('Juan');
-      cy.get('input#apellido').type('Pérez');
-      cy.get('input#email').type('test@example.com');
-      cy.get('input#password').type('123456');
-      cy.get('input#confirmPassword').type('123456');
+      cy.fillRegistrationForm({
+        nombre: 'Juan',
+        apellido: 'Pérez',
+        email: 'test@example.com',
+        password: '123456',
+        confirmPassword: '123456'
+      });
       
-      cy.get('button[type="submit"]').click();
+      cy.submitRegistrationForm();
       
-      cy.contains('Error de conexión').should('be.visible');
+      cy.verifyValidationMessage('Error de conexión');
     });
   });
 
