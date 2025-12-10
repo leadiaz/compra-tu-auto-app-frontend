@@ -1,6 +1,7 @@
 /// <reference types="cypress" />
 
 import '../support/commands';
+import { TEST_PASSWORDS, TEST_EMAILS, TEST_USERS } from '../support/test-constants';
 
 describe('Registro de Usuario', () => {
   beforeEach(() => {
@@ -43,22 +44,22 @@ describe('Registro de Usuario', () => {
     });
 
     it('debe validar que el apellido es requerido', () => {
-      cy.fillRegistrationForm({ nombre: 'Juan' });
+      cy.fillRegistrationForm({ nombre: TEST_USERS.NOMBRE });
       cy.submitRegistrationForm();
       cy.verifyValidationMessage('El apellido es requerido');
     });
 
     it('debe validar que el apellido tiene al menos 2 caracteres', () => {
-      cy.fillRegistrationForm({ nombre: 'Juan', apellido: 'B' });
+      cy.fillRegistrationForm({ nombre: TEST_USERS.NOMBRE, apellido: 'B' });
       cy.submitRegistrationForm();
       cy.verifyValidationMessage('El apellido debe tener al menos 2 caracteres');
     });
 
     it('debe validar formato de email', () => {
       cy.fillRegistrationForm({
-        nombre: 'Juan',
-        apellido: 'Pérez',
-        email: 'email-invalido'
+        nombre: TEST_USERS.NOMBRE,
+        apellido: TEST_USERS.APELLIDO,
+        email: TEST_EMAILS.INVALID_FORMAT
       });
       cy.submitRegistrationForm();
       cy.verifyValidationMessage('El formato del email no es válido');
@@ -66,9 +67,9 @@ describe('Registro de Usuario', () => {
 
     it('debe validar que la contraseña es requerida', () => {
       cy.fillRegistrationForm({
-        nombre: 'Juan',
-        apellido: 'Pérez',
-        email: 'juan@example.com'
+        nombre: TEST_USERS.NOMBRE,
+        apellido: TEST_USERS.APELLIDO,
+        email: TEST_EMAILS.VALID
       });
       cy.submitRegistrationForm();
       cy.verifyValidationMessage('La contraseña es requerida');
@@ -76,10 +77,10 @@ describe('Registro de Usuario', () => {
 
     it('debe validar que la contraseña tiene al menos 6 caracteres', () => {
       cy.fillRegistrationForm({
-        nombre: 'Juan',
-        apellido: 'Pérez',
-        email: 'juan@example.com',
-        password: '12345'
+        nombre: TEST_USERS.NOMBRE,
+        apellido: TEST_USERS.APELLIDO,
+        email: TEST_EMAILS.VALID,
+        password: TEST_PASSWORDS.TOO_SHORT
       });
       cy.submitRegistrationForm();
       cy.verifyValidationMessage('La contraseña debe tener al menos 6 caracteres');
@@ -87,11 +88,11 @@ describe('Registro de Usuario', () => {
 
     it('debe validar que las contraseñas coinciden', () => {
       cy.fillRegistrationForm({
-        nombre: 'Juan',
-        apellido: 'Pérez',
-        email: 'juan@example.com',
-        password: '123456',
-        confirmPassword: '123457'
+        nombre: TEST_USERS.NOMBRE,
+        apellido: TEST_USERS.APELLIDO,
+        email: TEST_EMAILS.VALID,
+        password: TEST_PASSWORDS.VALID,
+        confirmPassword: TEST_PASSWORDS.MISMATCH
       });
       cy.submitRegistrationForm();
       cy.verifyValidationMessage('Las contraseñas no coinciden');
@@ -100,7 +101,7 @@ describe('Registro de Usuario', () => {
 
   describe('Funcionalidad de mostrar/ocultar contraseña', () => {
     it('debe poder mostrar y ocultar la contraseña', () => {
-      cy.get('input#password').type('mipassword123');
+      cy.get('input#password').type(TEST_PASSWORDS.FOR_TOGGLE);
       cy.verifyPasswordFieldType('password', 'password');
       
       // Click en el botón de mostrar contraseña
@@ -113,7 +114,7 @@ describe('Registro de Usuario', () => {
     });
 
     it('debe poder mostrar y ocultar la confirmación de contraseña', () => {
-      cy.get('input#confirmPassword').type('mipassword123');
+      cy.get('input#confirmPassword').type(TEST_PASSWORDS.FOR_TOGGLE);
       cy.verifyPasswordFieldType('confirmPassword', 'password');
       
       // Click en el botón de mostrar contraseña
@@ -129,18 +130,18 @@ describe('Registro de Usuario', () => {
         statusCode: 201,
         body: {
           id: 1,
-          email: 'nuevo@example.com',
-          nombre: 'Nuevo',
-          apellido: 'Usuario'
+          email: TEST_EMAILS.NEW,
+          nombre: TEST_USERS.NOMBRE_NUEVO,
+          apellido: TEST_USERS.APELLIDO_NUEVO
         }
       }).as('mockRegistro');
 
       cy.fillRegistrationForm({
-        nombre: 'Nuevo',
-        apellido: 'Usuario',
-        email: 'nuevo@example.com',
-        password: '123456',
-        confirmPassword: '123456'
+        nombre: TEST_USERS.NOMBRE_NUEVO,
+        apellido: TEST_USERS.APELLIDO_NUEVO,
+        email: TEST_EMAILS.NEW,
+        password: TEST_PASSWORDS.VALID,
+        confirmPassword: TEST_PASSWORDS.VALID
       });
       
       cy.submitRegistrationForm();
@@ -163,11 +164,11 @@ describe('Registro de Usuario', () => {
       }).as('mockErrorEmail');
 
       cy.fillRegistrationForm({
-        nombre: 'Juan',
-        apellido: 'Pérez',
-        email: 'existente@example.com',
-        password: '123456',
-        confirmPassword: '123456'
+        nombre: TEST_USERS.NOMBRE,
+        apellido: TEST_USERS.APELLIDO,
+        email: TEST_EMAILS.EXISTING,
+        password: TEST_PASSWORDS.VALID,
+        confirmPassword: TEST_PASSWORDS.VALID
       });
       
       cy.submitRegistrationForm();
@@ -183,11 +184,11 @@ describe('Registro de Usuario', () => {
       }).as('mockErrorConexion');
 
       cy.fillRegistrationForm({
-        nombre: 'Juan',
-        apellido: 'Pérez',
-        email: 'test@example.com',
-        password: '123456',
-        confirmPassword: '123456'
+        nombre: TEST_USERS.NOMBRE,
+        apellido: TEST_USERS.APELLIDO,
+        email: TEST_EMAILS.VALID,
+        password: TEST_PASSWORDS.VALID,
+        confirmPassword: TEST_PASSWORDS.VALID
       });
       
       cy.submitRegistrationForm();
