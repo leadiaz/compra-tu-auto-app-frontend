@@ -1,0 +1,127 @@
+<div class="buscar-autos-container">
+  <div class="header-section">
+    <h1>Ofertas Disponibles</h1>
+    <button 
+      type="button" 
+      class="btn-toggle-filtros"
+      (click)="toggleFiltros()"
+    >
+      {{ mostrarFiltros() ? 'Ocultar' : 'Mostrar' }} Filtros
+    </button>
+  </div>
+
+  <!-- Filtros avanzados -->
+  @if (mostrarFiltros()) {
+    <div class="filtros-section">
+      <form [formGroup]="filtrosForm" (ngSubmit)="buscar()">
+        <div class="filtros-grid">
+          <!-- Precio -->
+          <div class="form-group">
+            <label>Precio mínimo</label>
+            <input 
+              type="number" 
+              formControlName="precioMin"
+              placeholder="0"
+              min="0"
+            />
+          </div>
+          <div class="form-group">
+            <label>Precio máximo</label>
+            <input 
+              type="number" 
+              formControlName="precioMax"
+              placeholder="Sin límite"
+              min="0"
+            />
+          </div>
+
+          <!-- Moneda -->
+          <div class="form-group">
+            <label>Moneda</label>
+            <select formControlName="moneda">
+              <option value="">Todas</option>
+              <option value="ARS">ARS</option>
+              <option value="USD">USD</option>
+              <option value="EUR">EUR</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="filtros-actions">
+          <button type="button" class="btn-secondary" (click)="limpiarFiltros()">
+            Limpiar
+          </button>
+          <button type="submit" class="btn-primary" [disabled]="isLoading()">
+            Buscar
+          </button>
+        </div>
+      </form>
+    </div>
+  }
+
+  <!-- Resultados -->
+  <div class="resultados-section">
+    @if (isLoading()) {
+      <div class="loading-container">
+        <div class="spinner"></div>
+        <p>Cargando ofertas...</p>
+      </div>
+    } @else if (ofertas().length === 0) {
+      <div class="empty-state">
+        <p>No se encontraron ofertas con los filtros seleccionados.</p>
+      </div>
+    } @else {
+      <div class="resultados-header">
+        <p>Se encontraron {{ ofertas().length }} ofertas</p>
+      </div>
+
+      <div class="autos-grid">
+        @for (oferta of ofertas(); track oferta.id) {
+          <div class="auto-card">
+            <div class="auto-image">
+              <div class="no-image">Sin imagen</div>
+              <button 
+                type="button"
+                class="favorito-btn"
+                [class.active]="esFavorito(oferta.id)"
+                (click)="toggleFavorito(oferta)"
+                [attr.aria-label]="esFavorito(oferta.id) ? 'Quitar de favoritos' : 'Agregar a favoritos'"
+              >
+                <svg fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+                </svg>
+              </button>
+            </div>
+            <div class="auto-info">
+              <h3>
+                @if (oferta.autoMarca && oferta.autoModelo) {
+                  {{ oferta.autoMarca }} {{ oferta.autoModelo }}
+                  @if (oferta.autoAnioModelo) {
+                    ({{ oferta.autoAnioModelo }})
+                  }
+                } @else {
+                  Auto ID: {{ oferta.autoId }}
+                }
+              </h3>
+              @if (oferta.concesionariaNombre) {
+                <p class="auto-year">{{ oferta.concesionariaNombre }}</p>
+              }
+              <div class="auto-details">
+                <span>Stock: {{ oferta.stock }} unidades</span>
+              </div>
+              <div class="auto-price">
+                <strong>${{ oferta.precioActual | number }} {{ oferta.moneda }}</strong>
+              </div>
+              <div class="auto-actions">
+                <button type="button" class="btn-primary" (click)="verDetalle(oferta.autoId)">
+                  Ver Detalle
+                </button>
+              </div>
+            </div>
+          </div>
+        }
+      </div>
+    }
+  </div>
+</div>
+

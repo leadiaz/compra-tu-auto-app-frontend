@@ -1,0 +1,228 @@
+<div class="editar-auto-container">
+  <div class="header-section">
+    <h1>Editar Auto</h1>
+    <button type="button" class="btn-secondary" (click)="cancelar()">
+      Cancelar
+    </button>
+  </div>
+
+  @if (cargandoAuto()) {
+    <div class="loading-container">
+      <div class="spinner"></div>
+      <p>Cargando auto...</p>
+    </div>
+  } @else {
+    <form [formGroup]="autoForm" (ngSubmit)="onSubmit()" class="auto-form">
+      <div class="form-section">
+        <h2>Información Básica</h2>
+        <div class="form-grid">
+          <div class="form-group" [class.invalid]="isFieldInvalid('marca')">
+            <label>Marca *</label>
+            <select formControlName="marca">
+              <option value="">Seleccione una marca</option>
+              @for (marca of marcas(); track marca) {
+                <option [value]="marca">{{ marca }}</option>
+              }
+            </select>
+            @if (getFieldError('marca')) {
+              <span class="error-message">{{ getFieldError('marca') }}</span>
+            }
+          </div>
+
+          <div class="form-group" [class.invalid]="isFieldInvalid('modelo')">
+            <label>Modelo *</label>
+            <select formControlName="modelo" [disabled]="!autoForm.get('marca')?.value">
+              <option value="">Seleccione un modelo</option>
+              @for (modelo of modelos(); track modelo) {
+                <option [value]="modelo">{{ modelo }}</option>
+              }
+            </select>
+            @if (getFieldError('modelo')) {
+              <span class="error-message">{{ getFieldError('modelo') }}</span>
+            }
+          </div>
+
+          <div class="form-group" [class.invalid]="isFieldInvalid('año')">
+            <label>Año *</label>
+            <input 
+              type="number" 
+              formControlName="año"
+              placeholder="2024"
+              min="1900"
+              [max]="getAnioMaximo()"
+            />
+            @if (getFieldError('año')) {
+              <span class="error-message">{{ getFieldError('año') }}</span>
+            }
+          </div>
+
+          <div class="form-group" [class.invalid]="isFieldInvalid('color')">
+            <label>Color *</label>
+            <input 
+              type="text" 
+              formControlName="color"
+              placeholder="Ej: Blanco, Negro, Rojo..."
+            />
+            @if (getFieldError('color')) {
+              <span class="error-message">{{ getFieldError('color') }}</span>
+            }
+          </div>
+        </div>
+      </div>
+
+      <div class="form-section">
+        <h2>Especificaciones Técnicas</h2>
+        <div class="form-grid">
+          <div class="form-group" [class.invalid]="isFieldInvalid('kilometraje')">
+            <label>Kilometraje *</label>
+            <input 
+              type="number" 
+              formControlName="kilometraje"
+              placeholder="0"
+              min="0"
+            />
+            @if (getFieldError('kilometraje')) {
+              <span class="error-message">{{ getFieldError('kilometraje') }}</span>
+            }
+          </div>
+
+          <div class="form-group" [class.invalid]="isFieldInvalid('combustible')">
+            <label>Combustible *</label>
+            <select formControlName="combustible">
+              <option value="">Seleccione un tipo</option>
+              @for (tipo of tiposCombustible; track tipo) {
+                <option [value]="tipo">{{ tipo }}</option>
+              }
+            </select>
+            @if (getFieldError('combustible')) {
+              <span class="error-message">{{ getFieldError('combustible') }}</span>
+            }
+          </div>
+
+          <div class="form-group" [class.invalid]="isFieldInvalid('transmision')">
+            <label>Transmisión *</label>
+            <select formControlName="transmision">
+              <option value="">Seleccione un tipo</option>
+              @for (tipo of tiposTransmision; track tipo) {
+                <option [value]="tipo">{{ tipo }}</option>
+              }
+            </select>
+            @if (getFieldError('transmision')) {
+              <span class="error-message">{{ getFieldError('transmision') }}</span>
+            }
+          </div>
+        </div>
+      </div>
+
+      <div class="form-section">
+        <h2>Precio y Descripción</h2>
+        <div class="form-grid">
+          <div class="form-group" [class.invalid]="isFieldInvalid('precio')">
+            <label>Precio (ARS) *</label>
+            <input 
+              type="number" 
+              formControlName="precio"
+              placeholder="0"
+              min="0"
+              step="0.01"
+            />
+            @if (getFieldError('precio')) {
+              <span class="error-message">{{ getFieldError('precio') }}</span>
+            }
+          </div>
+
+          <div class="form-group full-width" [class.invalid]="isFieldInvalid('descripcion')">
+            <label>Descripción *</label>
+            <textarea 
+              formControlName="descripcion"
+              rows="5"
+              placeholder="Describe el auto, su estado, características especiales, etc."
+            ></textarea>
+            @if (getFieldError('descripcion')) {
+              <span class="error-message">{{ getFieldError('descripcion') }}</span>
+            }
+          </div>
+        </div>
+      </div>
+
+      <div class="form-section">
+        <h2>Imágenes</h2>
+        <div class="imagenes-section">
+          @if (imagenesExistentes().length > 0) {
+            <div class="imagenes-existentes">
+              <h3>Imágenes Actuales</h3>
+              <div class="imagenes-preview">
+                @for (imagen of imagenesExistentes(); track $index) {
+                  <div class="imagen-preview">
+                    <img [src]="imagen" [alt]="'Imagen ' + ($index + 1)" />
+                    <button 
+                      type="button" 
+                      class="btn-eliminar-imagen"
+                      (click)="eliminarImagenExistente($index)"
+                    >
+                      ✕
+                    </button>
+                  </div>
+                }
+              </div>
+            </div>
+          }
+          
+          <div class="form-group">
+            <label>Agregar Nuevas Imágenes</label>
+            <input 
+              type="file" 
+              multiple
+              accept="image/*"
+              (change)="onImagenesSeleccionadas($event)"
+            />
+            <p class="help-text">Puedes seleccionar múltiples imágenes</p>
+          </div>
+
+          @if (previewImagenes().length > 0) {
+            <div class="imagenes-nuevas">
+              <h3>Nuevas Imágenes</h3>
+              <div class="imagenes-preview">
+                @for (preview of previewImagenes(); track $index) {
+                  <div class="imagen-preview">
+                    <img [src]="preview" [alt]="'Imagen nueva ' + ($index + 1)" />
+                    <button 
+                      type="button" 
+                      class="btn-eliminar-imagen"
+                      (click)="eliminarImagenNueva($index)"
+                    >
+                      ✕
+                    </button>
+                  </div>
+                }
+              </div>
+            </div>
+          }
+        </div>
+      </div>
+
+      <div class="form-section">
+        <div class="form-group">
+          <label class="checkbox-label">
+            <input type="checkbox" formControlName="activo" />
+            <span>Auto activo (visible para compradores)</span>
+          </label>
+        </div>
+      </div>
+
+      <div class="form-actions">
+        <button type="button" class="btn-secondary" (click)="cancelar()" [disabled]="isLoading()">
+          Cancelar
+        </button>
+        <button type="submit" class="btn-primary" [disabled]="isLoading()">
+          @if (isLoading()) {
+            Guardando...
+          } @else {
+            Guardar Cambios
+          }
+        </button>
+      </div>
+    </form>
+  }
+</div>
+

@@ -1,0 +1,142 @@
+<div class="perfil-container">
+  <div class="header-section">
+    <h1>Mi Perfil</h1>
+  </div>
+
+  @if (isLoading()) {
+    <div class="loading-container">
+      <div class="spinner"></div>
+      <p>Cargando información...</p>
+    </div>
+  } @else {
+    <div class="perfil-content">
+      <!-- Información Personal -->
+      <div class="perfil-section">
+        <div class="section-header">
+          <h2>Información Personal</h2>
+          <button 
+            type="button" 
+            class="btn-secondary btn-sm"
+            (click)="mostrarFormEdicion() ? cancelarEdicion() : abrirFormEdicion()"
+          >
+            {{ mostrarFormEdicion() ? 'Cancelar' : 'Editar' }}
+          </button>
+        </div>
+
+        @if (!mostrarFormEdicion()) {
+          <div class="info-display">
+            <div class="info-item">
+              <label>Nombre:</label>
+              <span>{{ perfil()?.nombre }}</span>
+            </div>
+            <div class="info-item">
+              <label>Apellido:</label>
+              <span>{{ perfil()?.apellido }}</span>
+            </div>
+            <div class="info-item">
+              <label>Email:</label>
+              <span>{{ perfil()?.email }}</span>
+            </div>
+            <div class="info-item">
+              <label>Teléfono:</label>
+              <span>{{ perfil()?.telefono || 'No especificado' }}</span>
+            </div>
+            <div class="info-item">
+              <label>Fecha de Alta:</label>
+              <span>{{ formatearFecha(perfil()?.fechaAlta) }}</span>
+            </div>
+          </div>
+        } @else {
+          <form [formGroup]="perfilForm" (ngSubmit)="guardarPerfil()" class="edit-form">
+            <div class="form-grid">
+              <div class="form-group" [class.invalid]="isFieldInvalid('nombre')">
+                <label>Nombre *</label>
+                <input type="text" formControlName="nombre" />
+                @if (getFieldError('nombre')) {
+                  <span class="error-message">{{ getFieldError('nombre') }}</span>
+                }
+              </div>
+              <div class="form-group" [class.invalid]="isFieldInvalid('apellido')">
+                <label>Apellido *</label>
+                <input type="text" formControlName="apellido" />
+                @if (getFieldError('apellido')) {
+                  <span class="error-message">{{ getFieldError('apellido') }}</span>
+                }
+              </div>
+              <div class="form-group" [class.invalid]="isFieldInvalid('email')">
+                <label>Email *</label>
+                <input type="email" formControlName="email" />
+                @if (getFieldError('email')) {
+                  <span class="error-message">{{ getFieldError('email') }}</span>
+                }
+              </div>
+              <div class="form-group">
+                <label>Teléfono</label>
+                <input type="tel" formControlName="telefono" />
+              </div>
+            </div>
+            <div class="form-actions">
+              <button type="button" class="btn-secondary" (click)="cancelarEdicion()">
+                Cancelar
+              </button>
+              <button type="submit" class="btn-primary" [disabled]="!perfilForm.valid || isLoading()">
+                Guardar Cambios
+              </button>
+            </div>
+          </form>
+        }
+      </div>
+
+      <!-- Cambio de Contraseña -->
+      <div class="perfil-section">
+        <div class="section-header">
+          <h2>Seguridad</h2>
+          <button 
+            type="button" 
+            class="btn-secondary btn-sm"
+            (click)="mostrarFormPassword() ? cancelarCambioPassword() : abrirFormPassword()"
+          >
+            {{ mostrarFormPassword() ? 'Cancelar' : 'Cambiar Contraseña' }}
+          </button>
+        </div>
+
+        @if (mostrarFormPassword()) {
+          <form [formGroup]="passwordForm" (ngSubmit)="cambiarPassword()" class="edit-form">
+            <div class="form-grid">
+              <div class="form-group" [class.invalid]="isFieldInvalid('passwordActual')">
+                <label>Contraseña Actual *</label>
+                <input type="password" formControlName="passwordActual" />
+                @if (getFieldError('passwordActual')) {
+                  <span class="error-message">{{ getFieldError('passwordActual') }}</span>
+                }
+              </div>
+              <div class="form-group" [class.invalid]="isFieldInvalid('passwordNuevo')">
+                <label>Nueva Contraseña *</label>
+                <input type="password" formControlName="passwordNuevo" />
+                @if (getFieldError('passwordNuevo')) {
+                  <span class="error-message">{{ getFieldError('passwordNuevo') }}</span>
+                }
+                <small>Mínimo 6 caracteres</small>
+              </div>
+              <div class="form-group" [class.invalid]="isFieldInvalid('passwordNuevoConfirmacion')">
+                <label>Confirmar Nueva Contraseña *</label>
+                <input type="password" formControlName="passwordNuevoConfirmacion" />
+                @if (getFieldError('passwordNuevoConfirmacion')) {
+                  <span class="error-message">{{ getFieldError('passwordNuevoConfirmacion') }}</span>
+                }
+              </div>
+            </div>
+            <div class="form-actions">
+              <button type="button" class="btn-secondary" (click)="cancelarCambioPassword()">
+                Cancelar
+              </button>
+              <button type="submit" class="btn-primary" [disabled]="!passwordForm.valid || isLoading()">
+                Cambiar Contraseña
+              </button>
+            </div>
+          </form>
+        }
+      </div>
+    </div>
+  }
+</div>

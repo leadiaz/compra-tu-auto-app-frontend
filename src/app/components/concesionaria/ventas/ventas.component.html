@@ -1,0 +1,268 @@
+<div class="ventas-container">
+  <div class="header-section">
+    <h1>Mis Ventas</h1>
+    <div class="header-actions">
+      <button 
+        type="button" 
+        class="btn-toggle-filtros"
+        (click)="toggleFiltros()"
+      >
+        {{ mostrarFiltros() ? 'Ocultar' : 'Mostrar' }} Filtros
+      </button>
+      <button 
+        type="button" 
+        class="btn-secondary"
+        (click)="exportarVentas('excel')"
+        [disabled]="isLoading() || ventas().length === 0"
+      >
+        Exportar Excel
+      </button>
+      <button 
+        type="button" 
+        class="btn-secondary"
+        (click)="exportarVentas('pdf')"
+        [disabled]="isLoading() || ventas().length === 0"
+      >
+        Exportar PDF
+      </button>
+    </div>
+  </div>
+
+  <!-- Filtros -->
+  @if (mostrarFiltros()) {
+    <div class="filtros-section">
+      <form [formGroup]="filtrosForm" (ngSubmit)="buscar()">
+        <div class="filtros-grid">
+          <!-- Fechas -->
+          <div class="form-group">
+            <label>Fecha desde</label>
+            <input 
+              type="date" 
+              formControlName="fechaDesde"
+            />
+          </div>
+          <div class="form-group">
+            <label>Fecha hasta</label>
+            <input 
+              type="date" 
+              formControlName="fechaHasta"
+            />
+          </div>
+
+          <!-- Precio -->
+          <div class="form-group">
+            <label>Precio mínimo</label>
+            <input 
+              type="number" 
+              formControlName="precioMin"
+              placeholder="0"
+              min="0"
+            />
+          </div>
+          <div class="form-group">
+            <label>Precio máximo</label>
+            <input 
+              type="number" 
+              formControlName="precioMax"
+              placeholder="Sin límite"
+              min="0"
+            />
+          </div>
+
+          <!-- Ordenamiento -->
+          <div class="form-group">
+            <label>Ordenar por</label>
+            <select formControlName="sortBy">
+              <option value="fechaVenta">Fecha de venta</option>
+              <option value="precio">Precio</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Orden</label>
+            <select formControlName="sortOrder">
+              <option value="ASC">Ascendente</option>
+              <option value="DESC">Descendente</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="filtros-actions">
+          <button type="button" class="btn-secondary" (click)="limpiarFiltros()">
+            Limpiar
+          </button>
+          <button type="submit" class="btn-primary" [disabled]="isLoading()">
+            Buscar
+          </button>
+        </div>
+      </form>
+    </div>
+  }
+
+  <!-- Resultados -->
+  <div class="resultados-section">
+    @if (isLoading()) {
+      <div class="loading-container">
+        <div class="spinner"></div>
+        <p>Cargando ventas...</p>
+      </div>
+    } @else if (ventas().length === 0) {
+      <div class="empty-state">
+        <p>No tienes ventas registradas aún.</p>
+      </div>
+    } @else {
+      <div class="resultados-header">
+        <p>Total: {{ totalElements() }} ventas</p>
+      </div>
+
+      <div class="ventas-table-container">
+        <table class="ventas-table">
+          <thead>
+            <tr>
+              <th>Fecha</th>
+              <th>Auto</th>
+              <th>Comprador</th>
+              <th>Precio</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (venta of ventas(); track venta.id) {
+              <tr>
+                <td>{{ formatearFecha(venta.fechaVenta) }}</td>
+                <td>
+                  @if (venta.auto) {
+                    <strong>{{ venta.auto.marca }} {{ venta.auto.modelo }}</strong>
+                    <br>
+                    <span class="text-muted">{{ venta.auto['año'] }}</span>
+                  } @else {
+                    Auto ID: {{ venta.autoId }}
+                  }
+                </td>
+                <td>
+                  @if (venta.comprador) {
+                    {{ venta.comprador.nombre }} {{ venta.comprador.apellido }}
+                    <br>
+                    <span class="text-muted">{{ venta.comprador.email }}</span>
+                  } @else {
+                    Comprador ID: {{ venta.compradorId }}
+                  }
+                </td>
+                <td class="precio-cell">
+                  <strong>{{ formatearPrecio(venta.precio) }}</strong>
+                </td>
+                <td>
+                  <button 
+                    type="button" 
+                    class="btn-primary btn-sm"
+                    (click)="verDetalle(venta)"
+                  >
+                    Ver Detalle
+                  </button>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Paginación -->
+      @if (totalPages() > 1) {
+        <div class="pagination">
+          <button 
+            type="button"
+            class="btn-pagination"
+            [disabled]="currentPage() === 0"
+            (click)="irAPagina(currentPage() - 1)"
+          >
+            Anterior
+          </button>
+          <span class="page-info">
+            Página {{ currentPage() + 1 }} de {{ totalPages() }}
+          </span>
+          <button 
+            type="button"
+            class="btn-pagination"
+            [disabled]="currentPage() >= totalPages() - 1"
+            (click)="irAPagina(currentPage() + 1)"
+          >
+            Siguiente
+          </button>
+        </div>
+      }
+    }
+  </div>
+</div>
+
+<!-- Modal Detalle Venta -->
+@if (mostrarModalDetalle() && ventaSeleccionada()) {
+  <div class="modal-overlay" (click)="cerrarModal()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <h2>Detalle de Venta</h2>
+      
+      <div class="detalle-section">
+        <h3>Información de la Venta</h3>
+        <div class="detalle-grid">
+          <div class="detalle-item">
+            <label>ID de Venta:</label>
+            <span>{{ ventaSeleccionada()!.id }}</span>
+          </div>
+          <div class="detalle-item">
+            <label>Fecha:</label>
+            <span>{{ formatearFecha(ventaSeleccionada()!.fechaVenta) }}</span>
+          </div>
+          <div class="detalle-item">
+            <label>Precio:</label>
+            <span class="precio">{{ formatearPrecio(ventaSeleccionada()!.precio) }}</span>
+          </div>
+        </div>
+      </div>
+
+      @if (ventaSeleccionada()!.auto) {
+        <div class="detalle-section">
+          <h3>Auto Vendido</h3>
+          <div class="detalle-grid">
+            <div class="detalle-item">
+              <label>Marca:</label>
+              <span>{{ ventaSeleccionada()!.auto.marca }}</span>
+            </div>
+            <div class="detalle-item">
+              <label>Modelo:</label>
+              <span>{{ ventaSeleccionada()!.auto.modelo }}</span>
+            </div>
+            <div class="detalle-item">
+              <label>Año:</label>
+              <span>{{ ventaSeleccionada()!.auto['año'] }}</span>
+            </div>
+            <div class="detalle-item">
+              <label>Kilometraje:</label>
+              <span>{{ ventaSeleccionada()!.auto.kilometraje | number }} km</span>
+            </div>
+          </div>
+        </div>
+      }
+
+      @if (ventaSeleccionada()!.comprador) {
+        <div class="detalle-section">
+          <h3>Comprador</h3>
+          <div class="detalle-grid">
+            <div class="detalle-item">
+              <label>Nombre:</label>
+              <span>{{ ventaSeleccionada()!.comprador.nombre }} {{ ventaSeleccionada()!.comprador.apellido }}</span>
+            </div>
+            <div class="detalle-item">
+              <label>Email:</label>
+              <span>{{ ventaSeleccionada()!.comprador.email }}</span>
+            </div>
+          </div>
+        </div>
+      }
+
+      <div class="modal-actions">
+        <button type="button" class="btn-primary" (click)="cerrarModal()">
+          Cerrar
+        </button>
+      </div>
+    </div>
+  </div>
+}
+

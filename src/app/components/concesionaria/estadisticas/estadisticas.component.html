@@ -1,0 +1,89 @@
+<div class="estadisticas-container">
+  <div class="header-section">
+    <h1>Estadísticas de Ventas</h1>
+  </div>
+
+  @if (isLoading()) {
+    <div class="loading-container">
+      <div class="spinner"></div>
+      <p>Cargando estadísticas...</p>
+    </div>
+  } @else if (estadisticas()) {
+    <div class="estadisticas-content">
+      <!-- Resumen General -->
+      <div class="stats-grid">
+        <div class="stat-card">
+          <h3>Total de Ventas</h3>
+          <p class="stat-value">{{ estadisticas()!.totalVentas }}</p>
+        </div>
+        <div class="stat-card">
+          <h3>Total de Ingresos</h3>
+          <p class="stat-value precio">{{ formatearPrecio(estadisticas()!.totalIngresos) }}</p>
+        </div>
+        <div class="stat-card">
+          <h3>Promedio por Venta</h3>
+          <p class="stat-value precio">{{ formatearPrecio(estadisticas()!.promedioVenta) }}</p>
+        </div>
+      </div>
+
+      <!-- Ventas por Mes -->
+      @if (estadisticas()!.ventasPorMes && estadisticas()!.ventasPorMes!.length > 0) {
+        <div class="section">
+          <h2>Ventas por Mes</h2>
+          <div class="table-container">
+            <table class="stats-table">
+              <thead>
+                <tr>
+                  <th>Mes</th>
+                  <th>Cantidad</th>
+                  <th>Ingresos</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (item of estadisticas()!.ventasPorMes; track item.mes) {
+                  <tr>
+                    <td>{{ item.mes }}</td>
+                    <td>{{ item.cantidad }}</td>
+                    <td class="precio">{{ formatearPrecio(item.ingresos) }}</td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        </div>
+      }
+
+      <!-- Autos Más Vendidos -->
+      @if (estadisticas()!.autosMasVendidos && estadisticas()!.autosMasVendidos!.length > 0) {
+        <div class="section">
+          <h2>Autos Más Vendidos</h2>
+          <div class="table-container">
+            <table class="stats-table">
+              <thead>
+                <tr>
+                  <th>Auto</th>
+                  <th>Cantidad Vendida</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (item of estadisticas()!.autosMasVendidos; track item.autoId) {
+                  <tr>
+                    <td><strong>{{ item.marca }} {{ item.modelo }}</strong></td>
+                    <td>{{ item.cantidad }}</td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        </div>
+      }
+    </div>
+  } @else {
+    <div class="empty-state">
+      <p>No hay estadísticas disponibles.</p>
+    </div>
+  }
+</div>
+
+
+

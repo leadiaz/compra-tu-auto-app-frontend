@@ -1,0 +1,169 @@
+<div class="perfil-container">
+  <h1>Mi Perfil</h1>
+
+  @if (isLoading()) {
+    <div class="loading-container">
+      <div class="spinner"></div>
+      <p>Cargando perfil...</p>
+    </div>
+  } @else if (perfil()) {
+    <div class="perfil-content">
+      <!-- Información del perfil -->
+      @if (!mostrarFormEdicion()) {
+        <div class="perfil-card">
+          <div class="perfil-header">
+            <h2>Información Personal</h2>
+            <button type="button" class="btn-secondary" (click)="mostrarFormEdicion.set(true)">
+              Editar
+            </button>
+          </div>
+          <div class="perfil-info">
+            <div class="info-item">
+              <span class="info-label">Nombre:</span>
+              <span class="info-value">{{ perfil()!.nombre }}</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Apellido:</span>
+              <span class="info-value">{{ perfil()!.apellido }}</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Email:</span>
+              <span class="info-value">{{ perfil()!.email }}</span>
+            </div>
+            @if (perfil()!.telefono) {
+              <div class="info-item">
+                <span class="info-label">Teléfono:</span>
+                <span class="info-value">{{ perfil()!.telefono }}</span>
+              </div>
+            }
+            <div class="info-item">
+              <span class="info-label">Fecha de alta:</span>
+              <span class="info-value">{{ perfil()!.fechaAlta | date:'dd/MM/yyyy' }}</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Tipo de usuario:</span>
+              <span class="info-value">{{ perfil()!.tipoUsuario }}</span>
+            </div>
+          </div>
+        </div>
+      } @else {
+        <!-- Formulario de edición -->
+        <div class="perfil-card">
+          <div class="perfil-header">
+            <h2>Editar Información</h2>
+          </div>
+          <form [formGroup]="perfilForm" (ngSubmit)="editarPerfil()" class="perfil-form">
+            <div class="form-group">
+              <label>Nombre</label>
+              <input type="text" formControlName="nombre" class="form-input" />
+              @if (perfilForm.get('nombre')?.invalid && perfilForm.get('nombre')?.touched) {
+                <span class="error-message">El nombre es requerido</span>
+              }
+            </div>
+            <div class="form-group">
+              <label>Apellido</label>
+              <input type="text" formControlName="apellido" class="form-input" />
+              @if (perfilForm.get('apellido')?.invalid && perfilForm.get('apellido')?.touched) {
+                <span class="error-message">El apellido es requerido</span>
+              }
+            </div>
+            <div class="form-group">
+              <label>Email</label>
+              <input type="email" formControlName="email" class="form-input" />
+              @if (perfilForm.get('email')?.invalid && perfilForm.get('email')?.touched) {
+                <span class="error-message">
+                  @if (perfilForm.get('email')?.errors?.['required']) {
+                    El email es requerido
+                  } @else {
+                    Email inválido
+                  }
+                </span>
+              }
+            </div>
+            <div class="form-group">
+              <label>Teléfono</label>
+              <input type="tel" formControlName="telefono" class="form-input" />
+            </div>
+            <div class="form-actions">
+              <button type="button" class="btn-secondary" (click)="mostrarFormEdicion.set(false)">
+                Cancelar
+              </button>
+              <button type="submit" class="btn-primary" [disabled]="perfilForm.invalid">
+                Guardar Cambios
+              </button>
+            </div>
+          </form>
+        </div>
+      }
+
+      <!-- Cambio de contraseña -->
+      <div class="perfil-card">
+        <div class="perfil-header">
+          <h2>Seguridad</h2>
+          <button 
+            type="button" 
+            class="btn-secondary"
+            (click)="toggleFormPassword()"
+          >
+            {{ mostrarFormPassword() ? 'Cancelar' : 'Cambiar Contraseña' }}
+          </button>
+        </div>
+        @if (mostrarFormPassword()) {
+          <form [formGroup]="passwordForm" (ngSubmit)="cambiarPassword()" class="perfil-form">
+            <div class="form-group">
+              <label>Contraseña actual</label>
+              <input 
+                type="password" 
+                formControlName="passwordActual" 
+                class="form-input" 
+              />
+              @if (passwordForm.get('passwordActual')?.invalid && passwordForm.get('passwordActual')?.touched) {
+                <span class="error-message">La contraseña actual es requerida</span>
+              }
+            </div>
+            <div class="form-group">
+              <label>Nueva contraseña</label>
+              <input 
+                type="password" 
+                formControlName="passwordNuevo" 
+                class="form-input" 
+              />
+              @if (passwordForm.get('passwordNuevo')?.invalid && passwordForm.get('passwordNuevo')?.touched) {
+                <span class="error-message">
+                  La contraseña debe tener al menos 6 caracteres
+                </span>
+              }
+            </div>
+            <div class="form-group">
+              <label>Confirmar nueva contraseña</label>
+              <input 
+                type="password" 
+                formControlName="passwordNuevoConfirmacion" 
+                class="form-input" 
+              />
+              @if (passwordForm.get('passwordNuevoConfirmacion')?.errors?.['passwordMismatch']) {
+                <span class="error-message">Las contraseñas no coinciden</span>
+              }
+            </div>
+            <div class="form-actions">
+              <button type="submit" class="btn-primary" [disabled]="passwordForm.invalid">
+                Cambiar Contraseña
+              </button>
+            </div>
+          </form>
+        }
+      </div>
+
+      <!-- Cerrar sesión -->
+      <div class="perfil-card">
+        <div class="perfil-header">
+          <h2>Sesión</h2>
+        </div>
+        <button type="button" class="btn-danger" (click)="cerrarSesion()">
+          Cerrar Sesión
+        </button>
+      </div>
+    </div>
+  }
+</div>
+

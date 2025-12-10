@@ -1,38 +1,8 @@
-<div class="dashboard">
-  <header class="dashboard-header">
-    <h1>Bienvenido, {{ userName() }}</h1>
-    <div class="header-actions">
-      <button class="btn" (click)="clearNotifications()">
-        Limpiar notificaciones
-      </button>
-      <div class="badge" [attr.data-badge]="notifications()">🔔</div>
-    </div>
-  </header>
-
-  <section class="grid">
-    <article class="card">
-      <h2>Resumen</h2>
-      <p>Este es tu panel principal. Aquí verás información clave de Compra Tu Auto.</p>
-    </article>
-
-    <article class="card">
-      <h2>Ventas</h2>
-      <p>Próximamente: métricas de ventas, conversiones y tendencias.</p>
-    </article>
-
-    <article class="card">
-      <h2>Autos publicados</h2>
-      <ul>
-        <li>Auto 1</li>
-        <li>Auto 2</li>
-        <li>Auto 3</li>
-        <li>Auto 4</li>
-      </ul>
-    </article>
-
-    <article class="card wide">
-      <h2>Actividad reciente</h2>
-      <p>Registros y eventos importantes aparecerán aquí.</p>
-    </article>
-  </section>
+<div class="dashboard-container">
+  <app-sidebar></app-sidebar>
+  <app-navbar (searchEvent)="onSearch($event)"></app-navbar>
+  
+  <main class="dashboard-content">
+    <router-outlet></router-outlet>
+  </main>
 </div>

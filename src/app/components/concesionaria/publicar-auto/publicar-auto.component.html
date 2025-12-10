@@ -1,0 +1,105 @@
+<div class="publicar-auto-container">
+  <div class="header-section">
+    <h1>Crear Nueva Oferta</h1>
+    <button type="button" class="btn-secondary" (click)="cancelar()">
+      Cancelar
+    </button>
+  </div>
+
+  <form [formGroup]="ofertaForm" (ngSubmit)="onSubmit()" class="auto-form">
+    <div class="form-section">
+      <h2>Seleccionar Auto</h2>
+      <div class="form-grid">
+        <div class="form-group full-width" [class.invalid]="isFieldInvalid('autoId')">
+          <label>Buscar Auto *</label>
+          <input 
+            type="text" 
+            [(ngModel)]="filtroBusqueda"
+            (ngModelChange)="filtrarAutos()"
+            [ngModelOptions]="{standalone: true}"
+            placeholder="Buscar por marca, modelo o año..."
+            class="search-input"
+          />
+          <select formControlName="autoId" size="5" class="autos-select">
+            <option value="">Seleccione un auto</option>
+            @for (auto of autosFiltrados(); track auto.id) {
+              <option [value]="auto.id">
+                {{ auto.marca }} {{ auto.modelo }} ({{ auto.anioModelo }})
+              </option>
+            }
+          </select>
+          @if (autosFiltrados().length === 0 && filtroBusqueda) {
+            <p class="help-text">No se encontraron autos con ese criterio de búsqueda.</p>
+          }
+          @if (getFieldError('autoId')) {
+            <span class="error-message">{{ getFieldError('autoId') }}</span>
+          }
+          @if (obtenerAutoSeleccionado()) {
+            <div class="auto-seleccionado-info">
+              <p><strong>Auto seleccionado:</strong> {{ obtenerAutoSeleccionado()!.marca }} {{ obtenerAutoSeleccionado()!.modelo }} ({{ obtenerAutoSeleccionado()!.anioModelo }})</p>
+            </div>
+          }
+        </div>
+      </div>
+    </div>
+
+    <div class="form-section">
+      <h2>Información de la Oferta</h2>
+      <div class="form-grid">
+        <div class="form-group" [class.invalid]="isFieldInvalid('precioActual')">
+          <label>Precio *</label>
+          <input 
+            type="number" 
+            formControlName="precioActual"
+            placeholder="0.00"
+            min="0.01"
+            step="0.01"
+          />
+          @if (getFieldError('precioActual')) {
+            <span class="error-message">{{ getFieldError('precioActual') }}</span>
+          }
+          <small>El precio debe ser mayor a 0</small>
+        </div>
+
+        <div class="form-group" [class.invalid]="isFieldInvalid('moneda')">
+          <label>Moneda *</label>
+          <select formControlName="moneda">
+            <option value="ARS">ARS (Pesos Argentinos)</option>
+            <option value="USD">USD (Dólares)</option>
+            <option value="EUR">EUR (Euros)</option>
+          </select>
+          @if (getFieldError('moneda')) {
+            <span class="error-message">{{ getFieldError('moneda') }}</span>
+          }
+        </div>
+
+        <div class="form-group" [class.invalid]="isFieldInvalid('stock')">
+          <label>Stock (Cantidad disponible) *</label>
+          <input 
+            type="number" 
+            formControlName="stock"
+            placeholder="0"
+            min="0"
+          />
+          @if (getFieldError('stock')) {
+            <span class="error-message">{{ getFieldError('stock') }}</span>
+          }
+          <small>Cantidad de unidades disponibles para esta oferta</small>
+        </div>
+      </div>
+    </div>
+
+    <div class="form-actions">
+      <button type="button" class="btn-secondary" (click)="cancelar()" [disabled]="isLoading()">
+        Cancelar
+      </button>
+      <button type="submit" class="btn-primary" [disabled]="!ofertaForm.valid || isLoading()">
+        @if (isLoading()) {
+          Creando...
+        } @else {
+          Crear Oferta
+        }
+      </button>
+    </div>
+  </form>
+</div>

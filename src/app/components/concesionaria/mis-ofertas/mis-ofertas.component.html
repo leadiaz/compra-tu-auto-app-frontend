@@ -1,0 +1,186 @@
+<div class="mis-ofertas-container">
+  <div class="header-section">
+    <h1>Mis Ofertas</h1>
+    <div class="header-actions">
+      <button 
+        type="button" 
+        class="btn-toggle-filtros"
+        (click)="toggleFiltros()"
+      >
+        {{ mostrarFiltros() ? 'Ocultar' : 'Mostrar' }} Filtros
+      </button>
+      <button 
+        type="button" 
+        class="btn-primary"
+        routerLink="/dashboard/publicar-auto"
+      >
+        + Crear Oferta
+      </button>
+    </div>
+  </div>
+
+  <!-- Filtros -->
+  @if (mostrarFiltros()) {
+    <div class="filtros-section">
+      <form [formGroup]="filtrosForm" (ngSubmit)="buscar()">
+        <div class="filtros-grid">
+          <div class="form-group">
+            <label>ID del Auto</label>
+            <input 
+              type="number" 
+              formControlName="autoId"
+              placeholder="Filtrar por auto"
+              min="1"
+            />
+          </div>
+
+          <div class="form-group">
+            <label>Precio mínimo</label>
+            <input 
+              type="number" 
+              formControlName="precioMin"
+              placeholder="0"
+              min="0"
+            />
+          </div>
+          <div class="form-group">
+            <label>Precio máximo</label>
+            <input 
+              type="number" 
+              formControlName="precioMax"
+              placeholder="Sin límite"
+              min="0"
+            />
+          </div>
+
+          <div class="form-group">
+            <label>Moneda</label>
+            <select formControlName="moneda">
+              <option value="">Todas</option>
+              <option value="ARS">ARS</option>
+              <option value="USD">USD</option>
+              <option value="EUR">EUR</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label>Stock mínimo</label>
+            <input 
+              type="number" 
+              formControlName="stockMin"
+              placeholder="0"
+              min="0"
+            />
+          </div>
+        </div>
+
+        <div class="filtros-actions">
+          <button type="button" class="btn-secondary" (click)="limpiarFiltros()">
+            Limpiar
+          </button>
+          <button type="submit" class="btn-primary" [disabled]="isLoading()">
+            Buscar
+          </button>
+        </div>
+      </form>
+    </div>
+  }
+
+  <!-- Resultados -->
+  <div class="resultados-section">
+    @if (isLoading()) {
+      <div class="loading-container">
+        <div class="spinner"></div>
+        <p>Cargando ofertas...</p>
+      </div>
+    } @else if (ofertas().length === 0) {
+      <div class="empty-state">
+        <p>No tienes ofertas publicadas aún.</p>
+        <button 
+          type="button" 
+          class="btn-primary"
+          routerLink="/dashboard/publicar-auto"
+        >
+          Crear mi primera oferta
+        </button>
+      </div>
+    } @else {
+      <div class="resultados-header">
+        <p>Total: {{ ofertas().length }} ofertas</p>
+      </div>
+
+      <div class="ofertas-grid">
+        @for (oferta of ofertas(); track oferta.id) {
+          <div class="oferta-card">
+            <div class="oferta-info">
+              <h3>
+                @if (oferta.autoMarca && oferta.autoModelo) {
+                  {{ oferta.autoMarca }} {{ oferta.autoModelo }}
+                  @if (oferta.autoAnioModelo) {
+                    ({{ oferta.autoAnioModelo }})
+                  }
+                } @else {
+                  Auto ID: {{ oferta.autoId }}
+                }
+              </h3>
+              <div class="oferta-details">
+                <div class="detail-item">
+                  <span class="label">Precio:</span>
+                  <span class="value">{{ oferta.precioActual | number }} {{ oferta.moneda }}</span>
+                </div>
+                <div class="detail-item">
+                  <span class="label">Stock:</span>
+                  <span class="value">{{ oferta.stock }} unidades</span>
+                </div>
+                @if (oferta.concesionariaNombre) {
+                  <div class="detail-item">
+                    <span class="label">Concesionaria:</span>
+                    <span class="value">{{ oferta.concesionariaNombre }}</span>
+                  </div>
+                }
+                @if (oferta.fechaCreacion) {
+                  <div class="detail-item">
+                    <span class="label">Fecha:</span>
+                    <span class="value">{{ formatearFecha(oferta.fechaCreacion) }}</span>
+                  </div>
+                }
+              </div>
+              <div class="oferta-actions">
+                <button 
+                  type="button" 
+                  class="btn-secondary"
+                  (click)="verDetalleAuto(oferta.autoId)"
+                >
+                  Ver Auto
+                </button>
+                <button 
+                  type="button" 
+                  class="btn-danger"
+                  (click)="confirmarEliminar(oferta)"
+                >
+                  Eliminar
+                </button>
+              </div>
+            </div>
+          </div>
+        }
+      </div>
+    }
+  </div>
+
+  <!-- Modal Eliminar -->
+  @if (mostrarModalEliminar() && ofertaSeleccionada()) {
+    <div class="modal-overlay" (click)="cerrarModales()">
+      <div class="modal-content" (click)="$event.stopPropagation()">
+        <h2>Confirmar Eliminación</h2>
+        <p>¿Estás seguro de que deseas eliminar esta oferta?</p>
+        <p class="warning">Esta acción no se puede deshacer.</p>
+        <div class="modal-actions">
+          <button type="button" class="btn-secondary" (click)="cerrarModales()">Cancelar</button>
+          <button type="button" class="btn-danger" (click)="eliminarOferta()" [disabled]="isLoading()">Eliminar</button>
+        </div>
+      </div>
+    </div>
+  }
+</div>
+

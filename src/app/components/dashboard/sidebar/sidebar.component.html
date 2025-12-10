@@ -1,0 +1,47 @@
+<aside class="sidebar">
+  <div class="sidebar-header">
+    <h2 class="sidebar-logo">Compra Tu Auto</h2>
+  </div>
+  
+  <nav class="sidebar-nav">
+    @if (isLoading()) {
+      <div class="menu-loading">
+        <div class="loading-spinner"></div>
+        <span>Cargando menú...</span>
+      </div>
+    } @else {
+      <ul class="menu-list">
+        @for (item of menuItems(); track item.id) {
+          <li class="menu-item">
+            <a 
+              [routerLink]="item.route" 
+              routerLinkActive="active"
+              [routerLinkActiveOptions]="{exact: item.route === '/dashboard'}"
+              class="menu-link"
+            >
+              <svg class="menu-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" [attr.d]="item.icon"></path>
+              </svg>
+              <span class="menu-label">{{ item.label }}</span>
+            </a>
+          </li>
+        }
+      </ul>
+    }
+  </nav>
+  
+  <div class="sidebar-footer">
+    <button 
+      type="button"
+      class="logout-button"
+      (click)="cerrarSesion()"
+      title="Cerrar sesión"
+    >
+      <svg class="menu-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
+      </svg>
+      <span class="menu-label">Cerrar Sesión</span>
+    </button>
+  </div>
+</aside>
+

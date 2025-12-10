@@ -1,0 +1,256 @@
+<div class="autos-container">
+  <div class="header-section">
+    <h1>Autos - Administración</h1>
+    <div class="header-actions">
+      <button 
+        type="button" 
+        class="btn-toggle-filtros"
+        (click)="toggleFiltros()"
+      >
+        {{ mostrarFiltros() ? 'Ocultar' : 'Mostrar' }} Filtros
+      </button>
+      <button 
+        type="button" 
+        class="btn-secondary"
+        (click)="exportarAutos('excel')"
+        [disabled]="isLoading() || autos().length === 0"
+      >
+        Exportar Excel
+      </button>
+      <button 
+        type="button" 
+        class="btn-secondary"
+        (click)="exportarAutos('pdf')"
+        [disabled]="isLoading() || autos().length === 0"
+      >
+        Exportar PDF
+      </button>
+    </div>
+  </div>
+
+  <!-- Tabs -->
+  <div class="tabs-section">
+    <button 
+      type="button"
+      class="tab-button"
+      [class.active]="tipoVista() === 'favoritos'"
+      (click)="cambiarVista('favoritos')"
+    >
+      Autos Favoritos
+    </button>
+    <button 
+      type="button"
+      class="tab-button"
+      [class.active]="tipoVista() === 'comprados'"
+      (click)="cambiarVista('comprados')"
+    >
+      Autos Comprados
+    </button>
+  </div>
+
+  <!-- Filtros -->
+  @if (mostrarFiltros()) {
+    <div class="filtros-section">
+      <form [formGroup]="filtrosForm" (ngSubmit)="buscar()">
+        <div class="filtros-grid">
+          <div class="form-group">
+            <label>Buscar</label>
+            <input 
+              type="text" 
+              formControlName="palabraClave"
+              placeholder="Marca, modelo, descripción..."
+            />
+          </div>
+          <div class="form-group">
+            <label>Marca</label>
+            <select formControlName="marca">
+              <option value="">Todas las marcas</option>
+              @for (marca of marcas(); track marca) {
+                <option [value]="marca">{{ marca }}</option>
+              }
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Modelo</label>
+            <select formControlName="modelo" [disabled]="!filtrosForm.get('marca')?.value">
+              <option value="">Todos los modelos</option>
+              @for (modelo of modelos(); track modelo) {
+                <option [value]="modelo">{{ modelo }}</option>
+              }
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Ordenar por</label>
+            <select formControlName="sortBy">
+              <option value="precio">Precio</option>
+              <option value="marca">Marca</option>
+              <option value="modelo">Modelo</option>
+              <option value="fechaPublicacion">Fecha</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Orden</label>
+            <select formControlName="sortOrder">
+              <option value="ASC">Ascendente</option>
+              <option value="DESC">Descendente</option>
+            </select>
+          </div>
+        </div>
+        <div class="filtros-actions">
+          <button type="button" class="btn-secondary" (click)="limpiarFiltros()">
+            Limpiar
+          </button>
+          <button type="submit" class="btn-primary" [disabled]="isLoading()">
+            Buscar
+          </button>
+        </div>
+      </form>
+    </div>
+  }
+
+  <!-- Resultados -->
+  <div class="resultados-section">
+    @if (isLoading()) {
+      <div class="loading-container">
+        <div class="spinner"></div>
+        <p>Cargando autos...</p>
+      </div>
+    } @else if (autos().length === 0) {
+      <div class="empty-state">
+        <p>No se encontraron autos {{ tipoVista() === 'favoritos' ? 'favoritos' : 'comprados' }} con los filtros seleccionados.</p>
+      </div>
+    } @else {
+      <div class="resultados-header">
+        <p>Total: {{ totalElements() }} autos {{ tipoVista() === 'favoritos' ? 'favoritos' : 'comprados' }}</p>
+      </div>
+
+      <div class="autos-grid">
+        @for (auto of autos(); track auto.id) {
+          <div class="auto-card">
+            <div class="auto-image">
+              @if (auto.imagenes && auto.imagenes.length > 0) {
+                <img [src]="auto.imagenes[0]" [alt]="auto.marca + ' ' + auto.modelo" />
+              } @else {
+                <div class="no-image">Sin imagen</div>
+              }
+            </div>
+            <div class="auto-info">
+              <h3>{{ auto.marca }} {{ auto.modelo }}</h3>
+              <p class="auto-year">{{ auto['año'] }}</p>
+              <div class="auto-details">
+                <span>{{ auto.kilometraje | number }} km</span>
+                <span>{{ auto.combustible }}</span>
+                <span>{{ auto.transmision }}</span>
+              </div>
+              <div class="auto-price">
+                <strong>{{ formatearPrecio(auto.precio) }}</strong>
+              </div>
+              @if (auto.concesionariaNombre) {
+                <div class="auto-concesionaria">
+                  <small>Concesionaria: {{ auto.concesionariaNombre }}</small>
+                </div>
+              }
+              <div class="auto-actions">
+                <button 
+                  type="button" 
+                  class="btn-primary btn-sm"
+                  (click)="verDetalle(auto)"
+                >
+                  Ver Detalle
+                </button>
+              </div>
+            </div>
+          </div>
+        }
+      </div>
+
+      <!-- Paginación -->
+      @if (totalPages() > 1) {
+        <div class="pagination">
+          <button 
+            type="button"
+            class="btn-pagination"
+            [disabled]="currentPage() === 0"
+            (click)="irAPagina(currentPage() - 1)"
+          >
+            Anterior
+          </button>
+          <span class="page-info">
+            Página {{ currentPage() + 1 }} de {{ totalPages() }}
+          </span>
+          <button 
+            type="button"
+            class="btn-pagination"
+            [disabled]="currentPage() >= totalPages() - 1"
+            (click)="irAPagina(currentPage() + 1)"
+          >
+            Siguiente
+          </button>
+        </div>
+      }
+    }
+  </div>
+</div>
+
+<!-- Modal Detalle Auto -->
+@if (mostrarModalDetalle() && autoSeleccionado()) {
+  <div class="modal-overlay" (click)="cerrarModal()">
+    <div class="modal-content modal-large" (click)="$event.stopPropagation()">
+      <h2>Detalle del Auto</h2>
+      <div class="detalle-section">
+        <div class="detalle-grid">
+          <div class="detalle-item">
+            <label>Marca:</label>
+            <span>{{ autoSeleccionado()!.marca }}</span>
+          </div>
+          <div class="detalle-item">
+            <label>Modelo:</label>
+            <span>{{ autoSeleccionado()!.modelo }}</span>
+          </div>
+          <div class="detalle-item">
+            <label>Año:</label>
+            <span>{{ autoSeleccionado()!['año'] }}</span>
+          </div>
+          <div class="detalle-item">
+            <label>Precio:</label>
+            <span class="precio">{{ formatearPrecio(autoSeleccionado()!.precio) }}</span>
+          </div>
+          <div class="detalle-item">
+            <label>Kilometraje:</label>
+            <span>{{ autoSeleccionado()!.kilometraje | number }} km</span>
+          </div>
+          <div class="detalle-item">
+            <label>Combustible:</label>
+            <span>{{ autoSeleccionado()!.combustible }}</span>
+          </div>
+          <div class="detalle-item">
+            <label>Transmisión:</label>
+            <span>{{ autoSeleccionado()!.transmision }}</span>
+          </div>
+          <div class="detalle-item">
+            <label>Color:</label>
+            <span>{{ autoSeleccionado()!.color }}</span>
+          </div>
+          @if (autoSeleccionado()!.concesionariaNombre) {
+            <div class="detalle-item">
+              <label>Concesionaria:</label>
+              <span>{{ autoSeleccionado()!.concesionariaNombre }}</span>
+            </div>
+          }
+        </div>
+        @if (autoSeleccionado()!.descripcion) {
+          <div class="detalle-item full-width">
+            <label>Descripción:</label>
+            <p>{{ autoSeleccionado()!.descripcion }}</p>
+          </div>
+        }
+      </div>
+      <div class="modal-actions">
+        <button type="button" class="btn-primary" (click)="cerrarModal()">
+          Cerrar
+        </button>
+      </div>
+    </div>
+  </div>
+}
+
