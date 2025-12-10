@@ -15,8 +15,6 @@ describe('Menús de navegación por rol de usuario', () => {
     });
 
     it('debe mostrar el menú completo de administrador', () => {
-      // Esperar a que cargue el menú (el MenuService tiene un delay de 300ms)
-      cy.contains('Cargando menú...').should('exist');
       cy.waitForMenuLoad();
       
       // Verificar que aparezcan todos los items del menú

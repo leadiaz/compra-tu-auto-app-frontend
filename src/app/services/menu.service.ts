@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { Observable, of, delay } from 'rxjs';
+import { Observable, of } from 'rxjs';
 import { MenuItem, MenuResponse } from '../models/menu.model';
 import { TipoUsuario } from '../models/auth.model';
 
@@ -168,19 +168,17 @@ export class MenuService {
 
   /**
    * Obtiene el menú del usuario según su tipo
-   * Por ahora simula una petición HTTP con datos estáticos
+   * Retorna los menús estáticos ordenados
    * @param tipoUsuario Tipo de usuario (ADMIN, COMPRADOR, CONCESIONARIO)
    * @returns Observable con el menú del usuario
    */
   getMenuByUserType(tipoUsuario: TipoUsuario): Observable<MenuResponse> {
-    // Simular petición HTTP con delay
     const menu = this.menusEstaticos[tipoUsuario] || [];
+    const menuOrdenado = [...menu].sort((a, b) => a.orden - b.orden);
     
     return of({
-      items: menu.sort((a, b) => a.orden - b.orden)
-    }).pipe(
-      delay(300) // Simular latencia de red
-    );
+      items: menuOrdenado
+    });
   }
 
   /**
