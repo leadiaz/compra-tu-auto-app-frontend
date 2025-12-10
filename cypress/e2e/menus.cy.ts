@@ -15,45 +15,37 @@ describe('Menús de navegación por rol de usuario', () => {
     });
 
     it('debe mostrar el menú completo de administrador', () => {
-      // Esperar a que cargue el menú (el MenuService tiene un delay de 300ms)
-      cy.contains('Cargando menú...').should('exist');
-      cy.contains('Cargando menú...', { timeout: 1000 }).should('not.exist');
+      cy.waitForMenuLoad();
       
       // Verificar que aparezcan todos los items del menú
-      cy.contains('Dashboard').should('be.visible');
-      cy.contains('Usuarios').should('be.visible');
-      cy.contains('Concesionarias').should('be.visible');
-      cy.contains('Gestión de Autos').should('be.visible');
-      cy.contains('Puntajes').should('be.visible');
-      cy.contains('Compras').should('be.visible');
-      cy.contains('Reportes').should('be.visible');
-      cy.contains('Perfil').should('be.visible');
+      cy.verifyMenuItemVisible([
+        'Dashboard',
+        'Usuarios',
+        'Concesionarias',
+        'Gestión de Autos',
+        'Puntajes',
+        'Compras',
+        'Reportes',
+        'Perfil'
+      ]);
     });
 
     it('debe navegar a la sección de Usuarios', () => {
-      cy.contains('Cargando menú...', { timeout: 1000 }).should('not.exist');
-      cy.contains('Usuarios').click();
-      cy.url().should('include', '/dashboard/usuarios');
+      cy.navigateToMenuItem('Usuarios', '/dashboard/usuarios');
     });
 
     it('debe navegar a la sección de Concesionarias', () => {
-      cy.contains('Cargando menú...', { timeout: 1000 }).should('not.exist');
-      cy.contains('Concesionarias').click();
-      cy.url().should('include', '/dashboard/concesionarias');
+      cy.navigateToMenuItem('Concesionarias', '/dashboard/concesionarias');
     });
 
     it('debe navegar a la sección de Gestión de Autos', () => {
-      cy.contains('Cargando menú...', { timeout: 1000 }).should('not.exist');
-      cy.contains('Gestión de Autos').click();
-      cy.url().should('include', '/dashboard/gestion-autos');
+      cy.navigateToMenuItem('Gestión de Autos', '/dashboard/gestion-autos');
       // Esperar un momento para que la página cargue (puede haber errores esperados del backend)
       cy.wait(500);
     });
 
     it('debe marcar como activo el item del menú según la ruta actual', () => {
-      cy.contains('Cargando menú...', { timeout: 1000 }).should('not.exist');
-      cy.contains('Usuarios').click();
-      cy.url().should('include', '/dashboard/usuarios');
+      cy.navigateToMenuItem('Usuarios', '/dashboard/usuarios');
       // Esperar un momento y verificar que la URL cambió correctamente
       cy.wait(500);
       // La verificación de la clase 'active' puede no funcionar inmediatamente debido a errores del componente
@@ -61,10 +53,8 @@ describe('Menús de navegación por rol de usuario', () => {
     });
 
     it('NO debe mostrar items de comprador o concesionaria', () => {
-      cy.contains('Cargando menú...', { timeout: 1000 }).should('not.exist');
-      cy.contains('Buscar Autos').should('not.exist');
-      cy.contains('Mis Autos').should('not.exist');
-      cy.contains('Mis Ofertas').should('not.exist');
+      cy.waitForMenuLoad();
+      cy.verifyMenuItemNotVisible(['Buscar Autos', 'Mis Autos', 'Mis Ofertas']);
     });
   });
 
@@ -75,53 +65,41 @@ describe('Menús de navegación por rol de usuario', () => {
     });
 
     it('debe mostrar el menú completo de comprador', () => {
-      cy.contains('Cargando menú...', { timeout: 1000 }).should('not.exist');
-      
-      cy.contains('Dashboard').should('be.visible');
-      cy.contains('Buscar Autos').should('be.visible');
-      cy.contains('Mis Favoritos').should('be.visible');
-      cy.contains('Mis Reseñas').should('be.visible');
-      cy.contains('Mis Compras').should('be.visible');
-      cy.contains('Perfil').should('be.visible');
+      cy.waitForMenuLoad();
+      cy.verifyMenuItemVisible([
+        'Dashboard',
+        'Buscar Autos',
+        'Mis Favoritos',
+        'Mis Reseñas',
+        'Mis Compras',
+        'Perfil'
+      ]);
     });
 
     it('NO debe mostrar items de administrador', () => {
-      cy.contains('Cargando menú...', { timeout: 1000 }).should('not.exist');
-      cy.contains('Usuarios').should('not.exist');
-      cy.contains('Concesionarias').should('not.exist');
-      cy.contains('Reportes').should('not.exist');
-      cy.contains('Gestión de Autos').should('not.exist');
+      cy.waitForMenuLoad();
+      cy.verifyMenuItemNotVisible(['Usuarios', 'Concesionarias', 'Reportes', 'Gestión de Autos']);
     });
 
     it('NO debe mostrar items de concesionaria', () => {
-      cy.contains('Cargando menú...', { timeout: 1000 }).should('not.exist');
-      cy.contains('Mis Autos').should('not.exist');
-      cy.contains('Mis Ofertas').should('not.exist');
-      cy.contains('Crear Oferta').should('not.exist');
-      cy.contains('Ventas').should('not.exist');
-      cy.contains('Estadísticas').should('not.exist');
+      cy.waitForMenuLoad();
+      cy.verifyMenuItemNotVisible(['Mis Autos', 'Mis Ofertas', 'Crear Oferta', 'Ventas', 'Estadísticas']);
     });
 
     it('debe navegar a Buscar Autos', () => {
-      cy.contains('Cargando menú...', { timeout: 1000 }).should('not.exist');
-      cy.contains('Buscar Autos').click();
-      cy.url().should('include', '/dashboard/ofertas');
+      cy.navigateToMenuItem('Buscar Autos', '/dashboard/ofertas');
       // Esperar un momento para que la página cargue (puede haber errores esperados del backend)
       cy.wait(500);
     });
 
     it('debe navegar a Mis Favoritos', () => {
-      cy.contains('Cargando menú...', { timeout: 1000 }).should('not.exist');
-      cy.contains('Mis Favoritos').click();
-      cy.url().should('include', '/dashboard/favoritos');
+      cy.navigateToMenuItem('Mis Favoritos', '/dashboard/favoritos');
       // Esperar un momento para que la página cargue (puede haber errores esperados del backend)
       cy.wait(500);
     });
 
     it('debe navegar a Mis Compras', () => {
-      cy.contains('Cargando menú...', { timeout: 1000 }).should('not.exist');
-      cy.contains('Mis Compras').click();
-      cy.url().should('include', '/dashboard/mis-compras');
+      cy.navigateToMenuItem('Mis Compras', '/dashboard/mis-compras');
     });
   });
 
@@ -132,53 +110,42 @@ describe('Menús de navegación por rol de usuario', () => {
     });
 
     it('debe mostrar el menú completo de concesionaria', () => {
-      cy.contains('Cargando menú...', { timeout: 1000 }).should('not.exist');
-      
-      cy.contains('Dashboard').should('be.visible');
-      cy.contains('Mis Autos').should('be.visible');
-      cy.contains('Mis Ofertas').should('be.visible');
-      cy.contains('Crear Oferta').should('be.visible');
-      cy.contains('Ventas').should('be.visible');
-      cy.contains('Estadísticas').should('be.visible');
-      cy.contains('Perfil').should('be.visible');
+      cy.waitForMenuLoad();
+      cy.verifyMenuItemVisible([
+        'Dashboard',
+        'Mis Autos',
+        'Mis Ofertas',
+        'Crear Oferta',
+        'Ventas',
+        'Estadísticas',
+        'Perfil'
+      ]);
     });
 
     it('NO debe mostrar items de administrador', () => {
-      cy.contains('Cargando menú...', { timeout: 1000 }).should('not.exist');
-      cy.contains('Usuarios').should('not.exist');
-      cy.contains('Concesionarias').should('not.exist');
-      cy.contains('Reportes').should('not.exist');
+      cy.waitForMenuLoad();
+      cy.verifyMenuItemNotVisible(['Usuarios', 'Concesionarias', 'Reportes']);
     });
 
     it('NO debe mostrar items de comprador', () => {
-      cy.contains('Cargando menú...', { timeout: 1000 }).should('not.exist');
-      cy.contains('Buscar Autos').should('not.exist');
-      cy.contains('Mis Favoritos').should('not.exist');
-      cy.contains('Mis Compras').should('not.exist');
+      cy.waitForMenuLoad();
+      cy.verifyMenuItemNotVisible(['Buscar Autos', 'Mis Favoritos', 'Mis Compras']);
     });
 
     it('debe navegar a Mis Autos', () => {
-      cy.contains('Cargando menú...', { timeout: 1000 }).should('not.exist');
-      cy.contains('Mis Autos').click();
-      cy.url().should('include', '/dashboard/mis-autos');
+      cy.navigateToMenuItem('Mis Autos', '/dashboard/mis-autos');
     });
 
     it('debe navegar a Crear Oferta', () => {
-      cy.contains('Cargando menú...', { timeout: 1000 }).should('not.exist');
-      cy.contains('Crear Oferta').click();
-      cy.url().should('include', '/dashboard/publicar-auto');
+      cy.navigateToMenuItem('Crear Oferta', '/dashboard/publicar-auto');
     });
 
     it('debe navegar a Ventas', () => {
-      cy.contains('Cargando menú...', { timeout: 1000 }).should('not.exist');
-      cy.contains('Ventas').click();
-      cy.url().should('include', '/dashboard/ventas');
+      cy.navigateToMenuItem('Ventas', '/dashboard/ventas');
     });
 
     it('debe navegar a Estadísticas', () => {
-      cy.contains('Cargando menú...', { timeout: 1000 }).should('not.exist');
-      cy.contains('Estadísticas').click();
-      cy.url().should('include', '/dashboard/estadisticas');
+      cy.navigateToMenuItem('Estadísticas', '/dashboard/estadisticas');
     });
   });
 
@@ -193,7 +160,7 @@ describe('Menús de navegación por rol de usuario', () => {
     });
 
     it('debe cerrar sesión correctamente', () => {
-      cy.contains('Cargando menú...', { timeout: 1000 }).should('not.exist');
+      cy.waitForMenuLoad();
       
       // Buscar el botón de cerrar sesión
       cy.contains('Cerrar Sesión').click();
@@ -209,9 +176,9 @@ describe('Menús de navegación por rol de usuario', () => {
     });
 
     it('debe tener el Dashboard como item activo por defecto', () => {
-      cy.contains('Cargando menú...', { timeout: 1000 }).should('not.exist');
+      cy.waitForMenuLoad();
       cy.visit('/dashboard/home');
-      cy.contains('Cargando menú...', { timeout: 1000 }).should('not.exist');
+      cy.waitForMenuLoad();
       
       // Verificar que el Dashboard está visible y puede tener la clase active
       cy.contains('Dashboard').should('be.visible');
@@ -231,7 +198,54 @@ describe('Menús de navegación por rol de usuario', () => {
       cy.loginAs('COMPRADOR');
       cy.visit('/dashboard');
       cy.url().should('include', '/dashboard');
-      cy.contains('Cargando menú...', { timeout: 1000 }).should('not.exist');
+      cy.waitForMenuLoad();
+    });
+
+    it('debe bloquear acceso de comprador a rutas de administrador', () => {
+      cy.verifyMultipleRoutesBlocked('COMPRADOR', [
+        '/dashboard/usuarios',
+        '/dashboard/concesionarias',
+        '/dashboard/reportes'
+      ]);
+    });
+
+    it('debe bloquear acceso de comprador a rutas de concesionaria', () => {
+      cy.verifyMultipleRoutesBlocked('COMPRADOR', [
+        '/dashboard/mis-autos',
+        '/dashboard/publicar-auto',
+        '/dashboard/ventas'
+      ]);
+    });
+
+    it('debe bloquear acceso de concesionaria a rutas de comprador', () => {
+      cy.verifyMultipleRoutesBlocked('CONCESIONARIO', [
+        '/dashboard/ofertas',
+        '/dashboard/favoritos',
+        '/dashboard/mis-compras'
+      ]);
+    });
+
+    it('debe bloquear acceso de concesionaria a rutas de administrador', () => {
+      cy.verifyMultipleRoutesBlocked('CONCESIONARIO', [
+        '/dashboard/usuarios',
+        '/dashboard/concesionarias',
+        '/dashboard/reportes'
+      ]);
+    });
+
+    it('debe permitir acceso de administrador a todas las rutas de admin', () => {
+      cy.loginAs('ADMIN');
+      
+      // Verificar acceso a rutas de administrador
+      const rutasPermitidas = [
+        '/dashboard/usuarios',
+        '/dashboard/concesionarias',
+        '/dashboard/reportes'
+      ];
+      
+      rutasPermitidas.forEach(ruta => {
+        cy.verifyRouteAllowed(ruta);
+      });
     });
   });
 });

@@ -1,0 +1,167 @@
+/// <reference types="cypress" />
+
+import '../support/commands';
+
+describe('Sistema de Permisos y Seguridad', () => {
+  beforeEach(() => {
+    cy.setupBackendMocks();
+  });
+
+  describe('Protección de rutas autenticadas', () => {
+    it('debe redirigir a login si se accede a dashboard sin autenticación', () => {
+      cy.visit('/dashboard/usuarios');
+      cy.verifyRedirectToLogin();
+    });
+
+    it('debe redirigir a login si se accede a cualquier ruta protegida sin autenticación', () => {
+      const rutasProtegidas = [
+        '/dashboard/ofertas',
+        '/dashboard/mis-autos',
+        '/dashboard/ventas',
+        '/dashboard/perfil'
+      ];
+
+      rutasProtegidas.forEach(ruta => {
+        cy.visit(ruta);
+        cy.verifyRedirectToLogin();
+      });
+    });
+
+    it('debe preservar la URL de destino en el query parameter', () => {
+      cy.visit('/dashboard/usuarios');
+      cy.verifyRedirectToLogin();
+      cy.url().should('include', 'returnUrl');
+    });
+  });
+
+  describe('Permisos por rol - Comprador', () => {
+    it('debe permitir acceso solo a rutas de comprador', () => {
+      cy.verifyMultipleRoutesAllowed('COMPRADOR', [
+        '/dashboard/ofertas',
+        '/dashboard/favoritos',
+        '/dashboard/mis-compras',
+        '/dashboard/mis-resenas',
+        '/dashboard/perfil'
+      ]);
+    });
+
+    it('debe bloquear todas las rutas de administrador', () => {
+      cy.verifyMultipleRoutesBlocked('COMPRADOR', [
+        '/dashboard/usuarios',
+        '/dashboard/concesionarias',
+        '/dashboard/gestion-autos',
+        '/dashboard/puntajes',
+        '/dashboard/compras-admin',
+        '/dashboard/reportes',
+        '/dashboard/perfil-admin'
+      ]);
+    });
+
+    it('debe bloquear todas las rutas de concesionaria', () => {
+      cy.verifyMultipleRoutesBlocked('COMPRADOR', [
+        '/dashboard/mis-autos',
+        '/dashboard/publicar-auto',
+        '/dashboard/ventas',
+        '/dashboard/estadisticas',
+        '/dashboard/mis-ofertas',
+        '/dashboard/perfil-concesionaria'
+      ]);
+    });
+  });
+
+  describe('Permisos por rol - Concesionaria', () => {
+    it('debe permitir acceso solo a rutas de concesionaria', () => {
+      cy.verifyMultipleRoutesAllowed('CONCESIONARIO', [
+        '/dashboard/mis-autos',
+        '/dashboard/publicar-auto',
+        '/dashboard/mis-ofertas',
+        '/dashboard/ventas',
+        '/dashboard/estadisticas',
+        '/dashboard/perfil-concesionaria'
+      ]);
+    });
+
+    it('debe bloquear todas las rutas de comprador', () => {
+      cy.verifyMultipleRoutesBlocked('CONCESIONARIO', [
+        '/dashboard/ofertas',
+        '/dashboard/favoritos',
+        '/dashboard/mis-compras',
+        '/dashboard/mis-resenas',
+        '/dashboard/perfil'
+      ]);
+    });
+  });
+
+  describe('Permisos por rol - Administrador', () => {
+    it('debe permitir acceso a todas las rutas de administrador', () => {
+      cy.verifyMultipleRoutesAllowed('ADMIN', [
+        '/dashboard/usuarios',
+        '/dashboard/concesionarias',
+        '/dashboard/gestion-autos',
+        '/dashboard/puntajes',
+        '/dashboard/compras-admin',
+        '/dashboard/reportes',
+        '/dashboard/perfil-admin'
+      ]);
+    });
+
+    it('debe bloquear rutas de otros roles', () => {
+      cy.verifyMultipleRoutesBlocked('ADMIN', [
+        '/dashboard/ofertas',
+        '/dashboard/mis-autos',
+        '/dashboard/favoritos'
+      ]);
+    });
+  });
+
+  describe('Persistencia de sesión', () => {
+    it('debe mantener la sesión al recargar la página', () => {
+      cy.loginAs('COMPRADOR');
+      cy.visit('/dashboard');
+      cy.waitForMenuLoad();
+      
+      cy.reload();
+      cy.waitForMenuLoad();
+      cy.contains('Buscar Autos').should('be.visible');
+    });
+
+    it('debe cerrar sesión correctamente y limpiar localStorage', () => {
+      cy.loginAs('COMPRADOR');
+      cy.visit('/dashboard');
+      cy.waitForMenuLoad();
+      
+      cy.contains('Cerrar Sesión').click();
+      cy.verifyRedirectToLogin();
+      cy.verifyLocalStorageCleaned();
+    });
+
+    it('debe redirigir a login si el token expira', () => {
+      cy.loginAs('COMPRADOR');
+      cy.visit('/dashboard');
+      
+      // Simular expiración de token eliminándolo
+      cy.window().then((win) => {
+        win.localStorage.removeItem('token');
+      });
+      
+      // Intentar acceder a una ruta protegida
+      cy.visit('/dashboard/ofertas');
+      cy.verifyRedirectToLogin();
+    });
+  });
+
+  describe('Manejo de usuarios no autorizados', () => {
+    it('debe manejar correctamente cuando un usuario intenta acceder a rutas de otro rol múltiples veces', () => {
+      // Intentar acceder varias veces a rutas no permitidas
+      cy.verifyMultipleRoutesBlocked('COMPRADOR', [
+        '/dashboard/usuarios',
+        '/dashboard/concesionarias'
+      ]);
+      
+      // Verificar que aún puede acceder a sus rutas permitidas
+      cy.loginAs('COMPRADOR');
+      cy.verifyRouteAllowed('/dashboard/ofertas');
+    });
+  });
+});
+
