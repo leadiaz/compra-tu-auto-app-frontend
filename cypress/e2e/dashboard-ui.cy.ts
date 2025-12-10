@@ -65,31 +65,18 @@ describe('Dashboard - UI y Componentes', () => {
 
   describe('Navegación entre secciones', () => {
     it('debe navegar correctamente entre todas las secciones de comprador', () => {
-      cy.loginAs('COMPRADOR');
-      cy.visit('/dashboard');
-      cy.waitForMenuLoad();
-
-      const secciones = [
+      cy.navigateThroughMenuSections('COMPRADOR', [
         { nombre: 'Dashboard', ruta: '/dashboard/home' },
         { nombre: 'Buscar Autos', ruta: '/dashboard/ofertas' },
         { nombre: 'Mis Favoritos', ruta: '/dashboard/favoritos' },
         { nombre: 'Mis Reseñas', ruta: '/dashboard/mis-resenas' },
         { nombre: 'Mis Compras', ruta: '/dashboard/mis-compras' },
         { nombre: 'Perfil', ruta: '/dashboard/perfil' }
-      ];
-
-      secciones.forEach(seccion => {
-        cy.navigateToMenuItem(seccion.nombre, seccion.ruta);
-        cy.wait(500);
-      });
+      ]);
     });
 
     it('debe navegar correctamente entre todas las secciones de administrador', () => {
-      cy.loginAs('ADMIN');
-      cy.visit('/dashboard');
-      cy.waitForMenuLoad();
-
-      const secciones = [
+      cy.navigateThroughMenuSections('ADMIN', [
         { nombre: 'Dashboard', ruta: '/dashboard/home' },
         { nombre: 'Usuarios', ruta: '/dashboard/usuarios' },
         { nombre: 'Concesionarias', ruta: '/dashboard/concesionarias' },
@@ -97,12 +84,7 @@ describe('Dashboard - UI y Componentes', () => {
         { nombre: 'Puntajes', ruta: '/dashboard/puntajes' },
         { nombre: 'Compras', ruta: '/dashboard/compras-admin' },
         { nombre: 'Reportes', ruta: '/dashboard/reportes' }
-      ];
-
-      secciones.forEach(seccion => {
-        cy.navigateToMenuItem(seccion.nombre, seccion.ruta);
-        cy.wait(500);
-      });
+      ]);
     });
   });
 

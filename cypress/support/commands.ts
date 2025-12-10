@@ -126,6 +126,22 @@ declare global {
        * @param rutasBloqueadas - Array de rutas que deben estar bloqueadas
        */
       verifyMultipleRoutesBlocked(rol: 'ADMIN' | 'COMPRADOR' | 'CONCESIONARIO', rutasBloqueadas: string[]): Chainable<void>;
+      
+      /**
+       * Verifica que múltiples rutas están permitidas para un rol específico
+       * Hace login con el rol especificado y verifica que todas las rutas están permitidas
+       * @param rol - Rol del usuario ('ADMIN', 'COMPRADOR' o 'CONCESIONARIO')
+       * @param rutasPermitidas - Array de rutas que deben estar permitidas
+       */
+      verifyMultipleRoutesAllowed(rol: 'ADMIN' | 'COMPRADOR' | 'CONCESIONARIO', rutasPermitidas: string[]): Chainable<void>;
+      
+      /**
+       * Navega a través de múltiples secciones del menú
+       * Hace login, visita el dashboard y navega por todas las secciones especificadas
+       * @param rol - Rol del usuario ('ADMIN', 'COMPRADOR' o 'CONCESIONARIO')
+       * @param secciones - Array de objetos con { nombre: string, ruta: string } que representan las secciones del menú
+       */
+      navigateThroughMenuSections(rol: 'ADMIN' | 'COMPRADOR' | 'CONCESIONARIO', secciones: Array<{ nombre: string; ruta: string }>): Chainable<void>;
     }
   }
 }
@@ -360,6 +376,24 @@ Cypress.Commands.add('verifyMultipleRoutesBlocked', (rol: 'ADMIN' | 'COMPRADOR' 
   cy.loginAs(rol);
   rutasBloqueadas.forEach((ruta) => {
     cy.verifyUrlBlocked(ruta);
+  });
+});
+
+Cypress.Commands.add('verifyMultipleRoutesAllowed', (rol: 'ADMIN' | 'COMPRADOR' | 'CONCESIONARIO', rutasPermitidas: string[]) => {
+  cy.loginAs(rol);
+  rutasPermitidas.forEach((ruta) => {
+    cy.verifyRouteAllowed(ruta);
+  });
+});
+
+Cypress.Commands.add('navigateThroughMenuSections', (rol: 'ADMIN' | 'COMPRADOR' | 'CONCESIONARIO', secciones: Array<{ nombre: string; ruta: string }>) => {
+  cy.loginAs(rol);
+  cy.visit('/dashboard');
+  cy.waitForMenuLoad();
+  
+  secciones.forEach((seccion) => {
+    cy.navigateToMenuItem(seccion.nombre, seccion.ruta);
+    cy.wait(500);
   });
 });
 

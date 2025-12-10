@@ -35,22 +35,14 @@ describe('Sistema de Permisos y Seguridad', () => {
   });
 
   describe('Permisos por rol - Comprador', () => {
-    beforeEach(() => {
-      cy.loginAs('COMPRADOR');
-    });
-
     it('debe permitir acceso solo a rutas de comprador', () => {
-      const rutasPermitidas = [
+      cy.verifyMultipleRoutesAllowed('COMPRADOR', [
         '/dashboard/ofertas',
         '/dashboard/favoritos',
         '/dashboard/mis-compras',
         '/dashboard/mis-resenas',
         '/dashboard/perfil'
-      ];
-
-      rutasPermitidas.forEach(ruta => {
-        cy.verifyRouteAllowed(ruta);
-      });
+      ]);
     });
 
     it('debe bloquear todas las rutas de administrador', () => {
@@ -78,23 +70,15 @@ describe('Sistema de Permisos y Seguridad', () => {
   });
 
   describe('Permisos por rol - Concesionaria', () => {
-    beforeEach(() => {
-      cy.loginAs('CONCESIONARIO');
-    });
-
     it('debe permitir acceso solo a rutas de concesionaria', () => {
-      const rutasPermitidas = [
+      cy.verifyMultipleRoutesAllowed('CONCESIONARIO', [
         '/dashboard/mis-autos',
         '/dashboard/publicar-auto',
         '/dashboard/mis-ofertas',
         '/dashboard/ventas',
         '/dashboard/estadisticas',
         '/dashboard/perfil-concesionaria'
-      ];
-
-      rutasPermitidas.forEach(ruta => {
-        cy.verifyRouteAllowed(ruta);
-      });
+      ]);
     });
 
     it('debe bloquear todas las rutas de comprador', () => {
@@ -109,12 +93,8 @@ describe('Sistema de Permisos y Seguridad', () => {
   });
 
   describe('Permisos por rol - Administrador', () => {
-    beforeEach(() => {
-      cy.loginAs('ADMIN');
-    });
-
     it('debe permitir acceso a todas las rutas de administrador', () => {
-      const rutasPermitidas = [
+      cy.verifyMultipleRoutesAllowed('ADMIN', [
         '/dashboard/usuarios',
         '/dashboard/concesionarias',
         '/dashboard/gestion-autos',
@@ -122,11 +102,7 @@ describe('Sistema de Permisos y Seguridad', () => {
         '/dashboard/compras-admin',
         '/dashboard/reportes',
         '/dashboard/perfil-admin'
-      ];
-
-      rutasPermitidas.forEach(ruta => {
-        cy.verifyRouteAllowed(ruta);
-      });
+      ]);
     });
 
     it('debe bloquear rutas de otros roles', () => {
