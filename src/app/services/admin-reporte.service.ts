@@ -82,7 +82,7 @@ export class AdminReporteService {
       }
     }
 
-    return this.apiService.get<ReporteTop5>('/admin/reportes/autos-mas-vendidos', {
+    return this.apiService.get<ReporteTop5>('/reports/autos-mas-vendidos', {
       headers: this.getHeaders(),
       params
     });
@@ -106,7 +106,7 @@ export class AdminReporteService {
       }
     }
 
-    return this.apiService.get<ReporteTop5>('/admin/reportes/usuarios-mas-compras', {
+    return this.apiService.get<ReporteTop5>('/reports/usuarios-mas-compras', {
       headers: this.getHeaders(),
       params
     });
@@ -130,7 +130,7 @@ export class AdminReporteService {
       }
     }
 
-    return this.apiService.get<ReporteTop5>('/admin/reportes/autos-mejores-rankeados', {
+    return this.apiService.get<ReporteTop5>('/reports/autos-mejores-rankeados', {
       headers: this.getHeaders(),
       params
     });
@@ -154,7 +154,7 @@ export class AdminReporteService {
       }
     }
 
-    return this.apiService.get<ReporteTop5>('/admin/reportes/agencias-mas-ventas', {
+    return this.apiService.get<ReporteTop5>('/reports/agencias-mas-ventas', {
       headers: this.getHeaders(),
       params
     });
@@ -180,7 +180,7 @@ export class AdminReporteService {
       }
     }
 
-    return this.apiService.get<Blob>('/admin/reportes/exportar', {
+    return this.apiService.get<Blob>('/reports/exportar', {
       headers: this.getHeaders(),
       params,
       responseType: 'blob'

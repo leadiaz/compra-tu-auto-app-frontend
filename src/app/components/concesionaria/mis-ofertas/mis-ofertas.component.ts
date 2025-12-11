@@ -43,16 +43,28 @@ export class MisOfertasComponent implements OnInit {
     this.isLoading.set(true);
     const filtros: OfertaFiltros = this.filtrosForm.value;
 
-    // Limpiar valores vacíos
-    Object.keys(filtros).forEach(key => {
-      if (filtros[key as keyof OfertaFiltros] === '' || filtros[key as keyof OfertaFiltros] === null) {
-        delete filtros[key as keyof OfertaFiltros];
-      }
-    });
-
-    this.concesionariaOfertaService.listarMisOfertas(filtros).subscribe({
+    this.concesionariaOfertaService.listarMisOfertas().subscribe({
       next: (ofertas) => {
-        this.ofertas.set(ofertas);
+        // Aplicar filtros en el frontend
+        let ofertasFiltradas = ofertas;
+        
+        if (filtros.autoId !== null && filtros.autoId !== undefined) {
+          ofertasFiltradas = ofertasFiltradas.filter(o => o.autoId === filtros.autoId);
+        }
+        if (filtros.precioMin !== null && filtros.precioMin !== undefined) {
+          ofertasFiltradas = ofertasFiltradas.filter(o => o.precioActual >= filtros.precioMin!);
+        }
+        if (filtros.precioMax !== null && filtros.precioMax !== undefined) {
+          ofertasFiltradas = ofertasFiltradas.filter(o => o.precioActual <= filtros.precioMax!);
+        }
+        if (filtros.moneda && filtros.moneda !== '') {
+          ofertasFiltradas = ofertasFiltradas.filter(o => o.moneda === filtros.moneda);
+        }
+        if (filtros.stockMin !== null && filtros.stockMin !== undefined) {
+          ofertasFiltradas = ofertasFiltradas.filter(o => o.stock >= filtros.stockMin!);
+        }
+        
+        this.ofertas.set(ofertasFiltradas);
         this.isLoading.set(false);
       },
       error: (error) => {
