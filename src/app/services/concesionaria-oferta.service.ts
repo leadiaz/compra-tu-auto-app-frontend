@@ -54,7 +54,7 @@ export class ConcesionariaOfertaService {
 
     // Asumimos que existe un endpoint específico para concesionarias
     // Si no existe, usaríamos /ofertas con filtro de concesionariaId
-    return this.apiService.get<Oferta[]>('/ofertas', {
+    return this.apiService.get<Oferta[]>('/ofertas/mis-ofertas', {
       headers: this.getHeaders(),
       params
     });
