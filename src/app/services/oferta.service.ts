@@ -28,8 +28,18 @@ export class OfertaService {
   }
 
   /**
-   * Lista todas las ofertas (COMPRADOR)
-   * GET /ofertas
+   * Lista todas las ofertas disponibles (COMPRADOR)
+   * GET /ofertas/todas
+   */
+  listarTodasLasOfertas(): Observable<Oferta[]> {
+    return this.apiService.get<Oferta[]>('/ofertas/todas', {
+      headers: this.getHeaders()
+    });
+  }
+
+  /**
+   * Lista ofertas por concesionaria (público o con filtros)
+   * GET /ofertas?concesionariaId={id}
    */
   listarOfertas(filtros?: OfertaFiltros): Observable<Oferta[]> {
     let params = new HttpParams();
