@@ -6,8 +6,15 @@
     COPY package*.json ./
     RUN npm ci --no-audit --no-fund
     
-    # Copiar código y compilar (produce dist/frontend/{browser,server})
+    # Copiar código
     COPY . .
+    
+    # Reemplazar placeholder en api.config.prod.ts con la URL del backend
+    # La URL se pasa como build arg y se reemplaza antes del build
+    ARG API_BASE_URL=http://localhost:8080/api/1/compra-tu-auto
+    RUN sed -i "s|API_BASE_URL_PLACEHOLDER|${API_BASE_URL}|g" src/app/config/api.config.prod.ts
+    
+    # Compilar (produce dist/frontend/{browser,server})
     ARG ANGULAR_CONFIG=production
     RUN npm run build -- --configuration=${ANGULAR_CONFIG}
     
