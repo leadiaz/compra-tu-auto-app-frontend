@@ -13,12 +13,12 @@ describe('Dashboard - UI y Componentes', () => {
       cy.visit('/dashboard');
       cy.waitForMenuLoad();
     });
-
+      
     it('debe mostrar la página principal del dashboard', () => {
       cy.url().should('include', '/dashboard');
       cy.contains('Compra Tu Auto').should('be.visible');
     });
-
+      
     it('debe mostrar el sidebar correctamente', () => {
       cy.contains('Compra Tu Auto').should('be.visible');
       cy.get('.sidebar').should('be.visible');

@@ -52,7 +52,7 @@ export class PublicarAutoComponent implements OnInit {
       },
       error: (error) => {
         console.error('Error al cargar concesionaria:', error);
-        alert('Error al cargar la información de la concesionaria. Por favor, intenta nuevamente.');
+        // alert('Error al cargar la información de la concesionaria. Por favor, intenta nuevamente.');
       }
     });
   }

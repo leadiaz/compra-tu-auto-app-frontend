@@ -16,9 +16,9 @@ export interface HttpOptions {
   providedIn: 'root'
 })
 export class ApiService {
-  private baseUrl = API_CONFIG.baseUrl;
+  private readonly baseUrl = API_CONFIG.baseUrl;
 
-  constructor(private http: HttpClient) {}
+  constructor(private readonly http: HttpClient) {}
 
   /**
    * Realiza una petición GET

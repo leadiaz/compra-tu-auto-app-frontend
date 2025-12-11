@@ -37,6 +37,16 @@ jobs:
       - name: Build Angular
         run: npm run build -- --configuration=production
 
+      # Tests E2E con Cypress
+      # - name: Cypress Tests
+      #   uses: cypress-io/github-action@v6
+      #   with:
+      #     install: false
+      #     start: npm run start:test
+      #     wait-on: 'http://127.0.0.1:4200'
+      #     wait-on-timeout: 120
+      #     command: npm run cy:run
+
       # Opcional: tests unitarios en modo CI
       # - name: Unit tests
         # run: npm test -- --watch=false --browsers=ChromeHeadless
