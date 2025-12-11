@@ -51,22 +51,28 @@ export class BuscarAutosComponent implements OnInit {
 
   buscar(): void {
     this.isLoading.set(true);
-    const filtros: OfertaFiltros = {
-      precioMin: this.filtrosForm.value.precioMin,
-      precioMax: this.filtrosForm.value.precioMax,
-      moneda: this.filtrosForm.value.moneda || undefined
-    };
-
-    // Limpiar valores vacíos
-    Object.keys(filtros).forEach(key => {
-      if (filtros[key as keyof OfertaFiltros] === '' || filtros[key as keyof OfertaFiltros] === null || filtros[key as keyof OfertaFiltros] === undefined) {
-        delete filtros[key as keyof OfertaFiltros];
-      }
-    });
-
-    this.ofertaService.listarOfertas(filtros).subscribe({
+    
+    // Obtener todas las ofertas usando el nuevo endpoint
+    this.ofertaService.listarTodasLasOfertas().subscribe({
       next: (ofertas) => {
-        this.ofertas.set(ofertas);
+        // Aplicar filtros en el frontend
+        let ofertasFiltradas = ofertas;
+        
+        const precioMin = this.filtrosForm.value.precioMin;
+        const precioMax = this.filtrosForm.value.precioMax;
+        const moneda = this.filtrosForm.value.moneda;
+        
+        if (precioMin !== null && precioMin !== undefined) {
+          ofertasFiltradas = ofertasFiltradas.filter(o => o.precioActual >= precioMin);
+        }
+        if (precioMax !== null && precioMax !== undefined) {
+          ofertasFiltradas = ofertasFiltradas.filter(o => o.precioActual <= precioMax);
+        }
+        if (moneda && moneda !== '') {
+          ofertasFiltradas = ofertasFiltradas.filter(o => o.moneda === moneda);
+        }
+        
+        this.ofertas.set(ofertasFiltradas);
         this.isLoading.set(false);
       },
       error: (error) => {
