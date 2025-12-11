@@ -29,13 +29,34 @@ export class ConcesionariaOfertaService {
 
   /**
    * Lista todas las ofertas de la concesionaria autenticada
-   * GET /ofertas/mis-ofertas
+   * GET /ofertas?concesionariaId={id} o GET /concesionarias/mis-ofertas
    */
   listarMisOfertas(filtros?: OfertaFiltros): Observable<Oferta[]> {
-    // El endpoint /ofertas/mis-ofertas retorna todas las ofertas de la concesionaria autenticada
-    // Los filtros se aplicarán en el frontend después de recibir los datos
-    return this.apiService.get<Oferta[]>('/ofertas/mis-ofertas', {
-      headers: this.getHeaders()
+    let params = new HttpParams();
+    
+    if (filtros) {
+      if (filtros.autoId !== undefined) {
+        params = params.set('autoId', filtros.autoId.toString());
+      }
+      if (filtros.precioMin !== undefined) {
+        params = params.set('precioMin', filtros.precioMin.toString());
+      }
+      if (filtros.precioMax !== undefined) {
+        params = params.set('precioMax', filtros.precioMax.toString());
+      }
+      if (filtros.moneda) {
+        params = params.set('moneda', filtros.moneda);
+      }
+      if (filtros.stockMin !== undefined) {
+        params = params.set('stockMin', filtros.stockMin.toString());
+      }
+    }
+
+    // Asumimos que existe un endpoint específico para concesionarias
+    // Si no existe, usaríamos /ofertas con filtro de concesionariaId
+    return this.apiService.get<Oferta[]>('/ofertas', {
+      headers: this.getHeaders(),
+      params
     });
   }
 
